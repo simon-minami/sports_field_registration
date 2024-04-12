@@ -25,23 +25,31 @@ from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_posit
 
 
 if __name__=='__main__':
+    torch.cuda.empty_cache()
+    size = (256, 256)
+
+    threshold = 0.75
+
+    epochs = 100
+
+    save_projection = True
+    # save_projection = False
+
     field_length = 50
     markers_x = np.linspace(0, field_length, 11)
     field_width = 25
     lines_y = np.linspace(0, field_width, 11)
 
     path = 'pool model.pth'
-    # model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
-    model = vanilla_Unet2()
+    model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64
 
     models_path = 'models'
 
+
+
     model_path = os.path.join(models_path, path)
     model.load_state_dict(load(model_path))
     model = model.cuda()
     model.eval()
-    print('loaded model')
-    # with no_grad():
-    #     pass
