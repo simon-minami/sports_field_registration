@@ -31,7 +31,8 @@ if __name__=='__main__':
     lines_y = np.linspace(0, field_width, 11)
 
     path = 'pool model.pth'
-    model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
+    # model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
+    model = vanilla_Unet2()
 
     batch_size = 64
 
