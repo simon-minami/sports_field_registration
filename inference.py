@@ -35,7 +35,7 @@ if __name__=='__main__':
 
     batch_size = 64
 
-    models_path = 'model'
+    models_path = 'models'
 
     model_path = os.path.join(models_path, path)
     model.load_state_dict(load(model_path))
