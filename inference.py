@@ -8,7 +8,7 @@ import torch
 from torch import load, unsqueeze, stack, no_grad
 from torchvision import transforms
 from torchvision.transforms.functional import rotate as rotate_tensor
-
+import cv2
 import os
 
 import numpy as np
@@ -53,3 +53,17 @@ if __name__=='__main__':
     model.load_state_dict(load(model_path))
     model = model.cuda()
     model.eval()
+
+    # load and preprocess image
+    preprocess = transforms.Compose([
+        transforms.ToTensor(),  # Convert to tensor
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # Normalize (ImageNet statistics)
+    ])
+
+    img = cv2.imread('images/test_image.jpg')
+    img = preprocess(img)
+
+    with no_grad():
+        batch_out = model(img)
+
+
