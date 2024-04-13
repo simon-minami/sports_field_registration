@@ -58,7 +58,7 @@ def get_homography_from_points(src_pts, dst_pts, size=(256, 256), homography_met
 
     x_coef = size[0] / field_length
     y_coef = size[1] / field_width
-    dst_pts = [(x * x_coef, y * y_coef) for (x, y) in dst_pts]
+    # dst_pts = [(x * x_coef, y * y_coef) for (x, y) in dst_pts]
 
     src_pts = np.array(src_pts)
     dst_pts = np.array(dst_pts)
