@@ -13,18 +13,15 @@ import os
 
 import numpy as np
 
-
 from model import deeper_Unet_like, vanilla_Unet
 from model_deconv import vanilla_Unet2
 
 from utils.blobs_utils import get_boxes, a_link_to_the_past, get_local_maxima
 from video_display_dataloader import get_video_dataloaders
-from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions,\
-     get_homography_from_points, conflicts_managements, display_on_image
+from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions, \
+    get_homography_from_points, conflicts_managements, display_on_image
 
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     torch.cuda.empty_cache()
     size = (256, 256)
 
@@ -47,8 +44,6 @@ if __name__=='__main__':
 
     models_path = 'models'
 
-
-
     model_path = os.path.join(models_path, path)
     model.load_state_dict(load(model_path))
     model = model.cuda()
@@ -61,10 +56,9 @@ if __name__=='__main__':
     ])
 
     img = cv2.imread('images/test_image.jpg')
-    img = preprocess(img).cuda() # move image tensor to gpu
+    img = preprocess(img).unsqueeze(0).cuda()  # add batch dimension and move image tensor to gpu
 
     with no_grad():
         batch_out = model(img)
+        print(type(batch_out))
         print(batch_out.size(), batch_out)
-
-
