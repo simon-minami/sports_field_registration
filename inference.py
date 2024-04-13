@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     img = cv2.imread('images/test_image.jpg')
     img = preprocess(img).unsqueeze(0).cuda()  # add batch dimension and move image tensor to gpu
-
+    print(img.size(), type(img))
     with no_grad():
         batch_out = model(img)
         print(type(batch_out))
