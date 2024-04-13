@@ -69,7 +69,7 @@ if __name__ == '__main__':
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
     print(f'shape after .view {tensor_img.size()}')
 
-    tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
+    tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
 
 
