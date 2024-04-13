@@ -6,6 +6,8 @@ AFTER: once we confirms it works on the swim stuff, we can try training basketba
 '''
 import torch
 from torch import load, unsqueeze, stack, no_grad
+from skimage import io
+
 from torchvision import transforms
 from torchvision.transforms.functional import rotate as rotate_tensor
 import cv2
@@ -49,16 +51,29 @@ if __name__ == '__main__':
     model = model.cuda()
     model.eval()
 
-    # load and preprocess image
-    preprocess = transforms.Compose([
-        transforms.ToTensor(),  # Convert to tensor
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])  # Normalize (ImageNet statistics)
+    # load and preprocess image following steps in video_display_dataloader.py
+    img_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]),
     ])
 
-    img = cv2.imread('images/test_image.jpg')
-    img = preprocess(img).unsqueeze(0).cuda()  # add batch dimension and move image tensor to gpu
-    print(img.size(), type(img))
+    img_path = 'images/test_image.jpg'
+    img = io.imread(img_path)
+    # img = self.zoom_out(img)
+    img = cv2.resize(img, size)
+
+    tensor_img = img_transform(img)
+    print(f'shape before .view {tensor_img.size()}')
+    tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
+    print(f'shape after .view {tensor_img.size()}')
+
+    tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
+    print(f'shape after adding batch dim {tensor_img.size()}')
+
+
     with no_grad():
-        batch_out = model(img)
+        batch_out = model(tensor_img)
         print(type(batch_out))
         print(batch_out.size(), batch_out)
