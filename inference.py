@@ -110,8 +110,31 @@ if __name__ == '__main__':
         H = get_homography_from_points(src_pts, dst_pts, size,
                                        field_length=field_length, field_width=field_width)
 
+        # testing drawing outline
+        pool_corners = np.array([
+            [0, 0], [field_length, 0], [field_length, field_width], [0, field_width]
+        ], dtype=float).reshape(-1, 1, 2)
+
+        pool_corners_video = cv2.perspectiveTransform(pool_corners, np.linalg.inv(H))
+        pool_corners_video = pool_corners_video.astype(int).reshape(-1, 2)
+
+        pt1 = pool_corners_video[0, :]
+        pt2 = pool_corners_video[1, :]
+        pt3 = pool_corners_video[2, :]
+        pt4 = pool_corners_video[3, :]
+
+        print(pt1, pt2, pt3, pt4)
+
+        cv2.line(img, pt1, pt2, (0, 0, 255), 3)
+        cv2.line(img, pt2, pt3, (0, 0, 255), 3)
+        cv2.line(img, pt3, pt4, (0, 0, 255), 3)
+        cv2.line(img, pt4, pt1, (0, 0, 255), 3)
+
+
+
         print(f'there are {len(src_pts)} src pts: {src_pts}')
         print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
+
 
         print(f'homography M: {H}')
         cv2.imwrite('images/test_output.jpg', img)
