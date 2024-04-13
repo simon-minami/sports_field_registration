@@ -105,4 +105,13 @@ if __name__ == '__main__':
                                                                           write_on_image=True,
                                                                           lines_nb=len(lines_y),
                                                                           markers_x=markers_x, lines_y=lines_y)
+
+        src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
+        H = get_homography_from_points(src_pts, dst_pts, size,
+                                       field_length=field_length, field_width=field_width)
+
+        print(f'there are {len(src_pts)} src pts: {src_pts}')
+        print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
+
+        print(f'homography M: {H}')
         cv2.imwrite('images/test_output.jpg', img)
