@@ -65,5 +65,6 @@ if __name__=='__main__':
 
     with no_grad():
         batch_out = model(img)
+        print(batch_out.size(), batch_out)
 
 
