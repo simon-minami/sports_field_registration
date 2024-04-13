@@ -61,7 +61,7 @@ if __name__=='__main__':
     ])
 
     img = cv2.imread('images/test_image.jpg')
-    img = preprocess(img)
+    img = preprocess(img).cuda() # move image tensor to gpu
 
     with no_grad():
         batch_out = model(img)
