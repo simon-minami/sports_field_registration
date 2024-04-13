@@ -89,9 +89,7 @@ if __name__ == '__main__':
     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
 
-    print(f'img before the numpy convert: {img.shape, type(img)}')
-    img = img.numpy()
-    print(f'img after the numpy convert: {img.shape, type(img)}')
+
 
 
 
