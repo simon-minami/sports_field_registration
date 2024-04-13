@@ -75,5 +75,11 @@ if __name__ == '__main__':
 
     with no_grad():
         batch_out = model(tensor_img)
-        print(type(batch_out))
-        print(batch_out.size(), batch_out)
+        # print(type(batch_out))
+        # print(batch_out.size(), batch_out)
+
+        img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out, threshold,
+                                                                          write_on_image=True,
+                                                                          lines_nb=len(lines_y),
+                                                                          markers_x=markers_x, lines_y=lines_y)
+        cv2.imwrite('images/test_output.jpg', img)
