@@ -23,6 +23,23 @@ from video_display_dataloader import get_video_dataloaders
 from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions, \
     get_homography_from_points, conflicts_managements, display_on_image
 
+def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
+    if batched : index_shift = 1
+    else : index_shift = 0
+    std = torch.tensor([0.229, 0.224, 0.225])
+    mean = torch.tensor([0.485, 0.456, 0.406])
+    if inv_trans :
+        for t, m, s in zip(out, mean, std):
+            t.mul_(s).add_(m)
+    out = out.cpu().numpy()
+    if to_uint8 :
+        out *= 256
+        out = out.astype(np.uint8)
+    out = np.swapaxes(out, index_shift + 0, index_shift + 2)
+    out = np.swapaxes(out, index_shift + 0, index_shift + 1)
+    return out
+
+
 if __name__ == '__main__':
     torch.cuda.empty_cache()
     size = (256, 256)
@@ -72,11 +89,19 @@ if __name__ == '__main__':
     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
 
+    print(f'img before the numpy convert: {img.shape, type(img)}')
+    img = img.numpy()
+    print(f'img after the numpy convert: {img.shape, type(img)}')
+
+
 
     with no_grad():
         batch_out = model(tensor_img)
-        # print(type(batch_out))
-        # print(batch_out.size(), batch_out)
+        print(f'model output before {batch_out.size()}')
+        batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
+        print(f'model output after converting back to image {batch_out.shape}')
+
+
 
         img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out, threshold,
                                                                           write_on_image=True,

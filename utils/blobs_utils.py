@@ -136,8 +136,7 @@ def get_boxes(heatmap_source, threshold=0.8, min_blob_size=None, max_blob_size=N
 
 
 def get_local_maxima(out, threshold) :
-    out_cpu = out.cpu()
-    out_copy = np.where(out_cpu < threshold, 0, out_cpu)
+    out_copy = np.where(out < threshold, 0, out)
     flat_out = np.max(out_copy, axis=2)
     neighborhood_size = 10
     data_max = filters.maximum_filter(flat_out, neighborhood_size)
