@@ -111,7 +111,7 @@ if __name__ == '__main__':
         src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
         H = get_homography_from_points(src_pts, dst_pts, size,
                                        field_length=field_length, field_width=field_width)
-        warped_img = cv2.warpPerspective(img, H, size)
+        warped_img = cv2.warpPerspective(img, H.astype(float), size)
 
         # # testing drawing outline
         # pool_corners = np.array([
