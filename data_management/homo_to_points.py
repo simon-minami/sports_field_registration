@@ -25,22 +25,23 @@ def get_matrix(data, out_size=(256, 256), in_size=(1000, 500)) :
 if __name__ == "__main__" :
     # save_path = "./dense_grid/"
     # template_path = './dense_grid.npy'
-    save_path = "./grid/"
-    template_path = './grid.npy'
+    save_path = "grids"
+    template_path = 'grid.npy'
 
     if not os.path.exists(save_path) : os.mkdir(save_path)
     files_list = os.listdir(save_path)
 
-    labels_path = '/path/to/WorldCup Soccer Homography/train_val/homographies'
+    # TODO: we'll have to change this around to handle multple game folders
+    labels_path = '../dataset/ncaa_bball/annotations/20230220_WVU_OklahomaSt'
     files = os.listdir(labels_path)
-    files = [f for f in files if f.endswith(".homographyMatrix")]
-    matrices = [np.loadtxt(os.path.join(labels_path, f)) for f in files]
+    files = [f for f in files if f.endswith(".npy")]
+    matrices = [np.load(os.path.join(labels_path, f)) for f in files]
 
     out_size = (1280, 720)
     final_size = (256, 256)
 
-    display = False
-    # display = True
+    # display = False
+    display = True
 
     template = np.load(template_path)
     template = np.swapaxes(template, 2, 0)
@@ -54,8 +55,10 @@ if __name__ == "__main__" :
 
         if not np.isnan(h).any() :
             scale_factor = np.eye(3)
-            scale_factor[0, 0] = out_size[0] / 115
-            scale_factor[1, 1] = out_size[1] / 74
+            # scale_factor[0, 0] = out_size[0] / 115
+            # scale_factor[1, 1] = out_size[1] / 74
+            scale_factor[0, 0] = out_size[0] / 94
+            scale_factor[1, 1] = out_size[1] / 40
             h = scale_factor @ h
             h_back = np.linalg.inv(h)
 
@@ -75,17 +78,20 @@ if __name__ == "__main__" :
 
                 lines_nb = 7
                 try :
-                    img = imread(os.path.join('/path/to/WorldCup Soccer Homography/train_val/images/train',
-                                              img_name.replace('homographyMatrix', 'jpg')))
+                    img = imread(os.path.join('../dataset/ncaa_bball/images/20230220_WVU_OklahomaSt',
+                                              img_name.replace('npy', 'jpg')))
                     img = resize(img, final_size)
                 except :
-                    img = imread(
-                        os.path.join('/path/to/WorldCup Soccer Homography/train_val/images/val',
-                                     img_name.replace('homographyMatrix', 'jpg')))
-                    img = resize(img, final_size)
+                    pass
+                    # img = imread(
+                    #     os.path.join('/path/to/WorldCup Soccer Homography/train_val/images/val',
+                    #                  img_name.replace('homographyMatrix', 'jpg')))
+                    # img = resize(img, final_size)
                 flat_max = np.max(result, axis=2)
                 flat_max = np.expand_dims(flat_max, axis=2)
                 flat_img_max = np.concatenate((flat_max, flat_max, flat_max), axis=2).astype(np.uint8)
+
+
                 import cv2
                 img = cv2.addWeighted(img, 0.7, flat_img_max, 0.5, 0)
 

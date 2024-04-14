@@ -1,5 +1,5 @@
 import numpy as np
-from skimage.draw import circle, ellipse
+from skimage.draw import ellipse
 import pickle as pk
 import os
 
@@ -16,9 +16,13 @@ def draw_point(data, x, y, channel, spot_size = (1, 1)) :
 if __name__ == '__main__' :
     data_path_np = "./grid"
 
-    field_length = 115
+    # field_length = 50
+    field_length = 94
+
     markers = np.linspace(0, field_length, 15)
-    field_width = 74
+    # field_width = 74
+    field_width = 50
+
     lines = np.linspace(0, field_width, 7)
 
     # img_size = (256, 256)
