@@ -27,11 +27,11 @@ if __name__=='__main__':
     model_prefix = ''
     batch_size = 3
     models_path = './models/'
-    epochs_already_trained = 0
+    epochs_already_trained = 100
 
     size = (256, 256)
     lr = 1e-3
-    epochs_nb = 100
+    epochs_nb = 1000
 
     optimizer_function = Adam
     save_after_N_epochs = 5
