@@ -40,7 +40,8 @@ if __name__=='__main__':
     initial_temperature = 1
     stagnation = 0.95
 
-    train_dataloader, test_dataloader = get_train_test_dataloaders_bball(train_img_path, out_path, size,
+    train_file = 'dataset/ncaa_bball/train.txt'
+    train_dataloader, test_dataloader = get_train_test_dataloaders_bball(train_img_path, out_path, size, train_file,
                                                   batch_size=batch_size, train_test_ratio=0.8, lines_nb=lines_nb)
     train_dataloader.temperature = initial_temperature
     test_dataloader.augment_data = False

@@ -590,9 +590,9 @@ class BballDataset(Dataset):
         return out
 
 ### New version for bball
-def get_train_test_dataloaders_bball(img_path, out_path, size, batch_size=2, train_test_ratio=0.8,
+def get_train_test_dataloaders_bball(img_path, out_path, size, train_file, batch_size=2, train_test_ratio=0.8,
                                augment_data=True, shuffle=True, lines_nb=11):
-    dataset = BballDataset(img_path, out_path, size, augment_data, lines_nb)
+    dataset = BballDataset(img_path, out_path, size, train_file, augment_data, lines_nb)
     if train_test_ratio != 1 :
         train_size = int(train_test_ratio * len(dataset))
         test_size = len(dataset) - train_size
