@@ -4,6 +4,7 @@ given input image, gets the predicted homography
 RIGHT NOW: trying to implement on the swim model, swim image etc.
 AFTER: once we confirms it works on the swim stuff, we can try training basketball model and then doing inference
 '''
+
 import torch
 from torch import load, unsqueeze, stack, no_grad
 from skimage import io
@@ -22,6 +23,7 @@ from utils.blobs_utils import get_boxes, a_link_to_the_past, get_local_maxima
 from video_display_dataloader import get_video_dataloaders
 from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions, \
     get_homography_from_points, conflicts_managements, display_on_image
+
 
 def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
     if batched : index_shift = 1
@@ -51,13 +53,13 @@ if __name__ == '__main__':
     save_projection = True
     # save_projection = False
 
-    field_length = 50
+    field_length = 94
     markers_x = np.linspace(0, field_length, 11)
-    field_width = 25
+    field_width = 50
     lines_y = np.linspace(0, field_width, 11)
 
-    path = 'pool model.pth'
-    model = vanilla_Unet(final_depth=len(markers_x) + len(lines_y))
+    path = 'best_model.pth'
+    model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64
 
@@ -76,7 +78,7 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img_path = 'images/test_image.jpg'
+    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_91.jpg'
     img = io.imread(img_path)
     # img = self.zoom_out(img)
     img = cv2.resize(img, size)
