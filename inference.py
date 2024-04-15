@@ -116,7 +116,7 @@ if __name__ == '__main__':
         draw_img = copy.copy(img)
         # # testing drawing outline
         # # NOTE: drawing the original video key points on warped iamge
-        video_pts = np.array(src_pts).reshape(-1, 1, 2)  # need to reshape for transformation
+        video_pts = np.array(src_pts).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
         video_pts_transformed = cv2.perspectiveTransform(video_pts, H.astype(float))
         video_pts_transformed = video_pts_transformed.astype(int).reshape(-1, 2)
         print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
