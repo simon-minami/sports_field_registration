@@ -22,7 +22,7 @@ if __name__=='__main__':
     train_img_path = 'dataset/ncaa_bball/images'
     out_path = 'data_management/grids'
     lines_nb = 11
-    model = vanilla_Unet2(final_depth=22).cuda()
+    model = vanilla_Unet(final_depth=22).cuda()
 
     model_prefix = ''
     batch_size = 6
@@ -135,7 +135,7 @@ if __name__=='__main__':
             print('test :', total_epoch_loss, epoch + 1)
             if total_epoch_loss < prev_best_loss:
                 prev_best_loss = total_epoch_loss
-                save(model.state_dict(), models_path + model_prefix + 'bball.pth')
+                save(model.state_dict(), models_path + model_prefix + f'bball_epoch{epoch}.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
             print()
         torch.cuda.empty_cache()
