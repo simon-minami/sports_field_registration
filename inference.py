@@ -111,7 +111,8 @@ if __name__ == '__main__':
                                        field_length=field_length, field_width=field_width)
         warped_img = cv2.warpPerspective(img, H.astype(float), size)
 
-        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC)
+        H_temp, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
+        H_court_to_video = np.linalg.inv(H_temp)
         H_court_to_video = H_court_to_video.astype(float)
         draw_img = copy.copy(img)
         # # testing drawing outline
@@ -123,6 +124,17 @@ if __name__ == '__main__':
         for pt in video_pts_transformed:
             cv2.circle(warped_img, pt, 3, (0, 0, 255), -1)
 
+        # NOTE: trying to draw court lines!!!!
+        court_pts = np.array(
+            [(75, 19), (75, 31)]
+        ).reshape(-1, 1, 2).astype(float)
+        court_pts_transformed = cv2.perspectiveTransform(court_pts, H_court_to_video)
+        court_pts_transformed = court_pts_transformed.astype(int).reshape(-1, 2)
+        print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
+        names = ['rk top left', 'rk bottom left']
+        for pt, name in zip(video_pts_transformed, names):
+            cv2.circle(draw_img, pt, 3, (0, 0, 255), -1)
+            cv2.putText(draw_img, name, (pt[0] - 30, pt[1] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
         # court_corners = np.array([
         #     [0, 0], [94, 0], [94, 50], [0, 50]
@@ -174,8 +186,6 @@ if __name__ == '__main__':
         # cv2.line(draw_img, pt1, pt2, (0, 0, 255), 3)
 
         print(f'there are {len(src_pts)} src pts: {src_pts}')
-
-
 
         print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
 
