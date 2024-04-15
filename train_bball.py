@@ -64,7 +64,7 @@ if __name__=='__main__':
     #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
 
     ## try fine tuning on pool model
-    model.load_state_dict(load(models_path + model_prefix + 'soccer model.pth'))
+    model.load_state_dict(load(models_path + model_prefix + 'pool model.pth'))
 
 
     display_counter = 0
