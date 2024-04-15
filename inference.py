@@ -111,7 +111,7 @@ if __name__ == '__main__':
                                        field_length=field_length, field_width=field_width)
         warped_img = cv2.warpPerspective(img, H.astype(float), size)
 
-        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC, 10)
+        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC)
         H_court_to_video = H_court_to_video.astype(float)
         draw_img = copy.copy(img)
         # # testing drawing outline
