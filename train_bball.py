@@ -27,11 +27,11 @@ if __name__=='__main__':
     model_prefix = ''
     batch_size = 3
     models_path = './models/'
-    epochs_already_trained = 100
+    epochs_already_trained = 0
 
     size = (256, 256)
     lr = 1e-3
-    epochs_nb = 1000
+    epochs_nb = 50
 
     optimizer_function = Adam
     save_after_N_epochs = 5
@@ -135,7 +135,7 @@ if __name__=='__main__':
             print('test :', total_epoch_loss, epoch + 1)
             if total_epoch_loss < prev_best_loss:
                 prev_best_loss = total_epoch_loss
-                save(model.state_dict(), models_path + model_prefix + 'best_model.pth')
+                save(model.state_dict(), models_path + model_prefix + 'bball.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
             print()
         torch.cuda.empty_cache()

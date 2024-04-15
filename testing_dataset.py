@@ -13,8 +13,8 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    image_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1891.jpg'
-    annotation_path = 'dataset/ncaa_bball/annotations/20230220_WVU_OklahomaSt/frame_1891.npy'
+    image_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_4501.jpg'
+    annotation_path = 'dataset/ncaa_bball/annotations/20230220_WVU_OklahomaSt/frame_4501.npy'
 
     print('test')
     print(np.load(annotation_path))

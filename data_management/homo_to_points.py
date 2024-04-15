@@ -58,7 +58,7 @@ if __name__ == "__main__" :
             # scale_factor[0, 0] = out_size[0] / 115
             # scale_factor[1, 1] = out_size[1] / 74
             scale_factor[0, 0] = out_size[0] / 94
-            scale_factor[1, 1] = out_size[1] / 40
+            scale_factor[1, 1] = out_size[1] / 50
             h = scale_factor @ h
             h_back = np.linalg.inv(h)
 
