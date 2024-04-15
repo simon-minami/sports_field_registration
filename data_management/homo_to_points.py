@@ -41,8 +41,8 @@ if __name__ == "__main__" :
     out_size = (1280, 720)
     final_size = (256, 256)
 
-    # display = False
-    display = True
+    display = False
+    # display = True
 
     template = np.load(template_path)
     template = np.swapaxes(template, 2, 0)
@@ -55,12 +55,12 @@ if __name__ == "__main__" :
         # h = h[0].numpy()
 
         if not np.isnan(h).any() :
-            scale_factor = np.eye(3)
-            # scale_factor[0, 0] = out_size[0] / 115
-            # scale_factor[1, 1] = out_size[1] / 74
-            scale_factor[0, 0] = out_size[0] / 94
-            scale_factor[1, 1] = out_size[1] / 50
-            h = scale_factor @ h
+            # scale_factor = np.eye(3)  # scale factor was used on soccer dataset which had different format.
+            # # scale_factor[0, 0] = out_size[0] / 115
+            # # scale_factor[1, 1] = out_size[1] / 74
+            # scale_factor[0, 0] = out_size[0] / 94
+            # scale_factor[1, 1] = out_size[1] / 50
+            # h = scale_factor @ h
             h_back = np.linalg.inv(h)
 
             result = warpPerspective(template, h_back, out_size)

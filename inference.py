@@ -58,7 +58,7 @@ if __name__ == '__main__':
     field_width = 50
     lines_y = np.linspace(0, field_width, 11)
 
-    path = 'bball_epoch40.pth'
+    path = 'bball_epoch38.pth'
     model = vanilla_Unet(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64

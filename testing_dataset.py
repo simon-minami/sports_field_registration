@@ -13,19 +13,30 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    image_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_4501.jpg'
-    annotation_path = 'dataset/ncaa_bball/annotations/20230220_WVU_OklahomaSt/frame_4501.npy'
+    # image_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_4501.jpg'
+    # annotation_path = 'dataset/ncaa_bball/annotations/20230220_WVU_OklahomaSt/frame_4501.npy'
+
+    # image_path = 'dataset/RegiSwim Dataset/frames/train_all/swimming_pool_01_SET_600_lq_0001.jpg'
+    # annotation_path = 'dataset/RegiSwim Dataset/homographies/swimming_pool_01_SET_600_lq_0001.homography.npy'
+
+    image_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.jpg"
+    annotation_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.homographyMatrix"
 
     print('test')
-    print(np.load(annotation_path))
+    print(np.loadtxt(annotation_path))
 
-    field_length = 50
-    field_width = 25
+    # field_length = 50
+    # field_width = 25
 
     frame = cv2.imread(image_path)
     print(frame.shape)
     # frame = cv2.resize(frame, (256, 256))
-    H = np.load(annotation_path).astype(float)
+    scale_factor = np.eye(3)
+    scale_factor[0, 0] = 1280 / 115
+    scale_factor[1, 1] = 720 / 74
+    h_initial = np.loadtxt(annotation_path).astype(float)
+
+    H = np.matmul(scale_factor, h_initial)
 
     warped = cv2.warpPerspective(frame, H, (frame.shape[1], frame.shape[0]))
     # H = np.linalg.inv(H)
