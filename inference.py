@@ -53,12 +53,12 @@ if __name__ == '__main__':
     save_projection = True
     # save_projection = False
 
-    field_length = 50
+    field_length = 94
     markers_x = np.linspace(0, field_length, 11)
-    field_width = 25
+    field_width = 50
     lines_y = np.linspace(0, field_width, 11)
 
-    path = 'pool model.pth'
+    path = 'bball_epoch40.pth'
     model = vanilla_Unet(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64
@@ -78,7 +78,7 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img_path = 'images/test_image.jpg'
+    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg'
     img = io.imread(img_path)
     # img = self.zoom_out(img)
     img = cv2.resize(img, size)

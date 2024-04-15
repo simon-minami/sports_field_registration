@@ -22,7 +22,7 @@ if __name__=='__main__':
     train_img_path = 'dataset/ncaa_bball/images'
     out_path = 'data_management/grids'
     lines_nb = 11
-    model = vanilla_Unet(final_depth=22).cuda()
+    model = vanilla_Unet2(final_depth=22).cuda()
 
     model_prefix = ''
     batch_size = 6
@@ -60,8 +60,12 @@ if __name__=='__main__':
 
     if not os.path.isdir(models_path) : os.mkdir(models_path)
 
-    if epochs_already_trained != 0:
-        model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
+    # if epochs_already_trained != 0:
+    #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
+
+    ## try fine tuning on pool model
+    model.load_state_dict(load(models_path + model_prefix + 'soccer model.pth'))
+
 
     display_counter = 0
     prev_best_loss = 1000
