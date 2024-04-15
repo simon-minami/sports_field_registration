@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
         #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
         img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out[0], threshold,
-                                                                          write_on_image=True,
+                                                                          write_on_image=False,
                                                                           lines_nb=len(lines_y),
                                                                           markers_x=markers_x, lines_y=lines_y)
 
