@@ -26,16 +26,18 @@ from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_posit
     get_homography_from_points, conflicts_managements, display_on_image
 
 
-def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
-    if batched : index_shift = 1
-    else : index_shift = 0
+def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True):
+    if batched:
+        index_shift = 1
+    else:
+        index_shift = 0
     std = torch.tensor([0.229, 0.224, 0.225])
     mean = torch.tensor([0.485, 0.456, 0.406])
-    if inv_trans :
+    if inv_trans:
         for t, m, s in zip(out, mean, std):
             t.mul_(s).add_(m)
     out = out.cpu().numpy()
-    if to_uint8 :
+    if to_uint8:
         out *= 256
         out = out.astype(np.uint8)
     out = np.swapaxes(out, index_shift + 0, index_shift + 2)
@@ -92,16 +94,11 @@ if __name__ == '__main__':
     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
 
-
-
-
-
     with no_grad():
         batch_out = model(tensor_img)
         print(f'model output before {batch_out.size()}')
         batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
         print(f'model output after converting back to image {batch_out.shape}')
-
 
         #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
         img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out[0], threshold,
@@ -114,9 +111,8 @@ if __name__ == '__main__':
                                        field_length=field_length, field_width=field_width)
         warped_img = cv2.warpPerspective(img, H.astype(float), size)
 
-
-
-        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC, 10).astype(float)
+        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC, 10)
+        H_court_to_video = H_court_to_video.astype(float)
         draw_img = copy.copy(img)
         # # testing drawing outline
         court_corners = np.array([
@@ -171,10 +167,7 @@ if __name__ == '__main__':
         print(f'there are {len(src_pts)} src pts: {src_pts}')
         print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
 
-
         print(f'homography M: {H}')
         cv2.imwrite('images/test_output.jpg', img)
         cv2.imwrite('images/warp_output.jpg', warped_img)
         cv2.imwrite('images/output_lines.jpg', draw_img)
-
-
