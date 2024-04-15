@@ -81,7 +81,7 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1261.jpg'
+    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
     img = io.imread(img_path)
     # img = self.zoom_out(img)
     img = cv2.resize(img, size)
