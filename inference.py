@@ -6,6 +6,7 @@ AFTER: once we confirms it works on the swim stuff, we can try training basketba
 '''
 
 import torch
+import copy
 from torch import load, unsqueeze, stack, no_grad
 from skimage import io
 
@@ -78,7 +79,7 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg'
+    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1261.jpg'
     img = io.imread(img_path)
     # img = self.zoom_out(img)
     img = cv2.resize(img, size)
@@ -104,7 +105,7 @@ if __name__ == '__main__':
 
         #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
         img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out[0], threshold,
-                                                                          write_on_image=True,
+                                                                          write_on_image=False,
                                                                           lines_nb=len(lines_y),
                                                                           markers_x=markers_x, lines_y=lines_y)
 
@@ -113,27 +114,59 @@ if __name__ == '__main__':
                                        field_length=field_length, field_width=field_width)
         warped_img = cv2.warpPerspective(img, H.astype(float), size)
 
+
+
+        H_court_to_video, _ = cv2.findHomography(np.array(dst_pts), np.array(src_pts), cv2.RANSAC, 10).astype(float)
+        draw_img = copy.copy(img)
         # # testing drawing outline
-        # pool_corners = np.array([
-        #     [0, 0], [field_length, 0], [field_length, field_width], [0, field_width]
-        # ], dtype=float).reshape(-1, 1, 2)
-        #
-        # pool_corners_video = cv2.perspectiveTransform(pool_corners, np.linalg.inv(H))
-        # pool_corners_video = pool_corners_video.astype(int).reshape(-1, 2)
-        #
-        # pt1 = pool_corners_video[0, :]
-        # pt2 = pool_corners_video[1, :]
-        # pt3 = pool_corners_video[2, :]
-        # pt4 = pool_corners_video[3, :]
-        #
-        # print(pt1, pt2, pt3, pt4)
-        #
-        # cv2.line(img, pt1, pt2, (0, 0, 255), 3)
-        # cv2.line(img, pt2, pt3, (0, 0, 255), 3)
-        # cv2.line(img, pt3, pt4, (0, 0, 255), 3)
-        # cv2.line(img, pt4, pt1, (0, 0, 255), 3)
+        court_corners = np.array([
+            [0, 0], [94, 0], [94, 50], [0, 50]
+        ], dtype=float)
+        right_key = np.array([
+            (75, 19), (94, 19), (94, 31), (75, 31)
+        ], dtype=float)
+        half_court = np.array([
+            (47, 0), (47, 50)
+        ], dtype=float)
 
+        court_corners = court_corners.reshape(-1, 1, 2)  # need to reshape for transformation
+        right_key = right_key.reshape(-1, 1, 2)
+        half_court = half_court.reshape(-1, 1, 2)
 
+        court_corners_video = cv2.perspectiveTransform(court_corners, H_court_to_video)
+        right_key_video = cv2.perspectiveTransform(right_key, H_court_to_video)
+        half_court_video = cv2.perspectiveTransform(half_court, H_court_to_video)
+        # print(court_corners_video, court_corners_video.shape)
+
+        court_corners_video = court_corners_video.astype(int).reshape(-1, 2)
+        right_key_video = right_key_video.astype(int).reshape(-1, 2)
+        half_court_video = half_court_video.astype(int).reshape(-1, 2)
+
+        # prinkt(court_corners_video, court_corners_video.shape)
+        pt1 = court_corners_video[0, :]
+        pt2 = court_corners_video[1, :]
+        pt3 = court_corners_video[2, :]
+        pt4 = court_corners_video[3, :]
+
+        cv2.line(draw_img, pt1, pt2, (0, 0, 255), 3)
+        cv2.line(draw_img, pt2, pt3, (0, 0, 255), 3)
+        cv2.line(draw_img, pt3, pt4, (0, 0, 255), 3)
+        cv2.line(draw_img, pt4, pt1, (0, 0, 255), 3)
+
+        pt1 = right_key_video[0, :]
+        pt2 = right_key_video[1, :]
+        pt3 = right_key_video[2, :]
+        pt4 = right_key_video[3, :]
+
+        cv2.line(draw_img, pt1, pt2, (0, 0, 255), 3)
+        cv2.line(draw_img, pt2, pt3, (0, 0, 255), 3)
+        cv2.line(draw_img, pt3, pt4, (0, 0, 255), 3)
+        cv2.line(draw_img, pt4, pt1, (0, 0, 255), 3)
+
+        pt1 = half_court_video[0, :]
+        pt2 = half_court_video[1, :]
+
+        cv2.line(draw_img, pt1, pt2, (0, 0, 255), 3)
 
         print(f'there are {len(src_pts)} src pts: {src_pts}')
         print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
@@ -142,4 +175,6 @@ if __name__ == '__main__':
         print(f'homography M: {H}')
         cv2.imwrite('images/test_output.jpg', img)
         cv2.imwrite('images/warp_output.jpg', warped_img)
+        cv2.imwrite('images/output_lines.jpg', draw_img)
+
 
