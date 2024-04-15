@@ -22,7 +22,7 @@ if __name__=='__main__':
     train_img_path = 'dataset/ncaa_bball/images'
     out_path = 'data_management/grids'
     lines_nb = 11
-    model = vanilla_Unet2(final_depth=22).cuda()
+    model = vanilla_Unet(final_depth=22).cuda()
 
     model_prefix = ''
     batch_size = 6
@@ -106,6 +106,7 @@ if __name__=='__main__':
             if display_counter == display_frequency :
                 display_counter = 0
                 print(float(loss))
+        print(f'debug: len train_dataloader: {len(train_dataloader)}')
         total_epoch_loss /= len(train_dataloader)
         print('train :', total_epoch_loss, epoch+1)
 
@@ -134,6 +135,7 @@ if __name__=='__main__':
                        mask_loss * mask_coef
 
                 total_epoch_loss += float(loss)
+            print(f'debug: len test_dataloader: {len(test_dataloader)}')
             total_epoch_loss /= len(test_dataloader)
 
             print('test :', total_epoch_loss, epoch + 1)
