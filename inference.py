@@ -58,7 +58,7 @@ if __name__ == '__main__':
     field_width = 50
     lines_y = np.linspace(0, field_width, 11)
 
-    path = 'best_model.pth'
+    path = 'bball.pth'
     model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64

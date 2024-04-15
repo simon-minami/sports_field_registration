@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from random import random
 import os
+import cv2
 from cv2 import warpPerspective, findHomography, GaussianBlur, resize, imread
 from matplotlib import pyplot as plt
 import matplotlib
@@ -64,6 +65,8 @@ if __name__ == "__main__" :
 
             result = warpPerspective(template, h_back, out_size)
             result = resize(result, final_size)
+            # print(result.shape)
+            # cv2.waitKey(0)
 
             result = GaussianBlur(result, (5, 5), 0)
             result[result != 0] = 255
