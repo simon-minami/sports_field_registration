@@ -25,7 +25,7 @@ if __name__=='__main__':
     model = vanilla_Unet2(final_depth=22).cuda()
 
     model_prefix = ''
-    batch_size = 3
+    batch_size = 6
     models_path = './models/'
     epochs_already_trained = 0
 
