@@ -42,11 +42,15 @@ def getHomographyMatrix(model, img, video_size, size=(256, 256), field_length=94
 
     # NOTE: H_video_to_court maps from 256x256 video to court diagram \
     # we want to it to go from video_size[0] x video_size[1] to court diagram
-
+    # TODO: scaling doesn't seemt obe right in the csv
+    # court to video is court to 256x256
+    H_court_to_video = np.linalg.inv(H_video_to_court)
     scale_factor = np.eye(3)
-    scale_factor[0, 0] = size[0] / width
-    scale_factor[1, 1] = size[1] / height
-    H_video_to_court_scaled = np.matmul(scale_factor, H_video_to_court)
+    scale_factor[0, 0] = width / size[0]
+    scale_factor[1, 1] = height / size[0]
+    H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+    # now court to video should be court to width x height
+    return np.linalg.inv(H_court_to_video_scaled)
 
     return H_video_to_court_scaled
 
