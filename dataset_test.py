@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 
 from dataloader import get_train_test_dataloaders
-from sfr_utils.grid_utils import get_homography_from_points, get_landmarks_positions
+from utils.grid_utils import get_homography_from_points, get_landmarks_positions
 
 
 def torch2np(img, inv_trans=True, float_to_uint8=True, is_binar=False) :

@@ -24,9 +24,9 @@ import numpy as np
 from model import deeper_Unet_like, vanilla_Unet
 from model_deconv import vanilla_Unet2
 
-from sfr_utils.blobs_utils import get_boxes, a_link_to_the_past, get_local_maxima
+from utils.blobs_utils import get_boxes, a_link_to_the_past, get_local_maxima
 from video_display_dataloader import get_video_dataloaders
-from sfr_utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions, \
+from utils.grid_utils import get_landmarks_positions, get_faster_landmarks_positions, \
     get_homography_from_points, conflicts_managements, display_on_image
 
 
