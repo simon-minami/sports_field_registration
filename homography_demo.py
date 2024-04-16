@@ -35,8 +35,11 @@ def preprocess(img, size):
             mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]),
     ])
+    # Convert from BGR to RGB
+    #NOTE: cv2 default reads in BGR format, need to convert to RGB for model to work (idk really why, just it that way)
+    rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    resized_img = cv2.resize(img, size)
+    resized_img = cv2.resize(rgb_frame, size)
 
     tensor_img = img_transform(resized_img)
     # print(f'shape before .view {tensor_img.size()}')
@@ -130,11 +133,10 @@ def main(args):
     with torch.no_grad():
         ret_val, frame = cap.read()
         while ret_val:
-            # Convert from BGR to RGB
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
             # apply necessary preprocessing to frame
             # load and preprocess image following steps in video_display_dataloader.py
-            resized_img, tensor_img = preprocess(rgb_frame, size)
+            resized_img, tensor_img = preprocess(frame, size)
             batch_out = model(tensor_img)
             # print(f'model output before {batch_out.size()}')
             batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
@@ -146,13 +148,13 @@ def main(args):
                                                                               lines_nb=len(lines_y),
                                                                               markers_x=markers_x, lines_y=lines_y)
 
-            cv2.imwrite('images/debug_original.jpg', rgb_frame)
-            cv2.imwrite('images/debug_resized.jpg', resized_img)
-            H = get_homography_from_points(src_pts, dst_pts, size,
-                                           field_length=field_length, field_width=field_width)
-            warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
-            cv2.imwrite('images/debug_warped.jpg', warped_img)
-            return
+            # cv2.imwrite('images/debug_original.jpg', rgb_frame)
+            # cv2.imwrite('images/debug_resized.jpg', resized_img)
+            # H = get_homography_from_points(src_pts, dst_pts, size,
+            #                                field_length=field_length, field_width=field_width)
+            # warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
+            # cv2.imwrite('images/debug_warped.jpg', warped_img)
+
 
 
 
@@ -160,20 +162,18 @@ def main(args):
             if len(src_pts) < 4:
                 vid_writer.write(frame)
                 ret_val, frame = cap.read()
+                print('homo could not be caluclated')
                 continue
 
             H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
-            if H_video_to_court is not None:
-                H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
+            H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
 
-                # scale_factor = np.eye(3)
-                # scale_factor[0, 0] = width / size[0]
-                # scale_factor[1, 1] = height / size[1]
-                #
-                # H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
-                frame = draw_court_lines(frame, H_court_to_video)
-            else:
-                print("Homography could not be determined for this frame.")
+            scale_factor = np.eye(3)
+            scale_factor[0, 0] = width / size[0]
+            scale_factor[1, 1] = height / size[1]
+            H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+            frame = draw_court_lines(frame, H_court_to_video_scaled)
+
 
             vid_writer.write(frame)
 
