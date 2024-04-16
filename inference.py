@@ -83,7 +83,7 @@ if __name__ == '__main__':
     ])
 
     # img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
-    img_path = 'dataset/RegiSwim Dataset/frames/train_all/Gwangju_100 DOS HOMMES FINALE_249.jpg'
+    img_path = 'images/test_image.jpg'
 
     img = io.imread(img_path)
     # img = self.zoom_out(img)
