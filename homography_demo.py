@@ -130,9 +130,11 @@ def main(args):
     with torch.no_grad():
         ret_val, frame = cap.read()
         while ret_val:
+            # Convert from BGR to RGB
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # apply necessary preprocessing to frame
             # load and preprocess image following steps in video_display_dataloader.py
-            resized_img, tensor_img = preprocess(frame, size)
+            resized_img, tensor_img = preprocess(rgb_frame, size)
             batch_out = model(tensor_img)
             # print(f'model output before {batch_out.size()}')
             batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
@@ -144,7 +146,7 @@ def main(args):
                                                                               lines_nb=len(lines_y),
                                                                               markers_x=markers_x, lines_y=lines_y)
 
-            cv2.imwrite('images/debug_original.jpg', frame)
+            cv2.imwrite('images/debug_original.jpg', rgb_frame)
             cv2.imwrite('images/debug_resized.jpg', resized_img)
             H = get_homography_from_points(src_pts, dst_pts, size,
                                            field_length=field_length, field_width=field_width)
