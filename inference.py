@@ -57,16 +57,16 @@ if __name__ == '__main__':
     save_projection = True
     # save_projection = False
 
-    field_length = 50
-    markers_x = np.linspace(0, field_length, 11)
-    field_width = 25
-    lines_y = np.linspace(0, field_width, 11)
+    field_length = 94
+    markers_x = np.linspace(0, field_length, 15)
+    field_width = 50
+    lines_y = np.linspace(0, field_width, 7)
 
-    model = vanilla_Unet(final_depth=len(markers_x) + len(lines_y))
+    model = vanilla_Unet2(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64
 
-    model_path = 'models/bball_new_epoch44.pth'
+    model_path = 'models/bball_unetv2_epoch45.pth'
 
     model.load_state_dict(load(model_path))
     model = model.cuda()
