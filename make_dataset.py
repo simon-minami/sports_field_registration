@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 WHITE = (255, 255, 255)
 
 # not sure how important this is, but will make imgs same size as soccer just in case
+
+# TODO: NEED TO PUT BACK THE RESIZING, BECAUSE THE TEMPLATE USED IN TRAINING IS FIT TO THIS SIZE
 # IMG_WIDTH = 1280
 # IMG_HEIGHT = 720
 
