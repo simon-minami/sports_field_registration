@@ -4,6 +4,7 @@ given input image, gets the predicted homography
 RIGHT NOW: trying to implement on the swim model, swim image etc.
 AFTER: once we confirms it works on the swim stuff, we can try training basketball model and then doing inference
 
+TODO: add image that draw court lines on original size image
 outputs a variety of image transformations based on the predicted homography
 '''
 
@@ -87,9 +88,9 @@ if __name__ == '__main__':
 
     img = io.imread(img_path)
     # img = self.zoom_out(img)
-    img = cv2.resize(img, size)
+    resized_img = cv2.resize(img, size)
 
-    tensor_img = img_transform(img)
+    tensor_img = img_transform(resized_img)
     print(f'shape before .view {tensor_img.size()}')
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
     print(f'shape after .view {tensor_img.size()}')
@@ -104,7 +105,7 @@ if __name__ == '__main__':
         print(f'model output after converting back to image {batch_out.shape}')
 
         #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
-        img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out[0], threshold,
+        resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
                                                                           write_on_image=False,
                                                                           lines_nb=len(lines_y),
                                                                           markers_x=markers_x, lines_y=lines_y)
@@ -112,15 +113,15 @@ if __name__ == '__main__':
         src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
         H = get_homography_from_points(src_pts, dst_pts, size,
                                        field_length=field_length, field_width=field_width)
-        warped_img = cv2.warpPerspective(img, H.astype(float), size)
+        warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
 
 
-        draw_img = copy.copy(img)
+        draw_img = copy.copy(resized_img)
         # # testing drawing outline
         # # NOTE: drawing the original video key points on original image
         for i, pt in enumerate(src_pts):
-            cv2.circle(img, pt, 3, (0, 0, 255), -1)
-            cv2.putText(img, f'pt{i}', pt, cv2.FONT_HERSHEY_SIMPLEX, 0.25, (0, 255, 0), 1)
+            cv2.circle(resized_img, pt, 3, (0, 0, 255), -1)
+            cv2.putText(resized_img, f'pt{i}', pt, cv2.FONT_HERSHEY_SIMPLEX, 0.25, (0, 255, 0), 1)
 
         ##NOTE: corresponding dst points on court grid
         # Plot the points
@@ -139,18 +140,18 @@ if __name__ == '__main__':
 
         # NOTE: trying to go from video to court
         H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
-        cc_top = np.array([
-            (42, 110)
-        ])
-        print(f'cc_top before: {cc_top}')
-        cv2.circle(img, cc_top[0], 3, (0, 0, 255), -1)
-        cv2.putText(img, 'cc_top', cc_top[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-        cc_top_transformed = cv2.perspectiveTransform(cc_top.reshape(-1, 1, 2).astype(float), H_video_to_court.astype(float))
-        cc_top_transformed = cc_top_transformed.reshape(-1, 2)
-        print(f'cc_top after: {cc_top_transformed}')
-        #add to grid
-        plt.scatter(int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1]))
-        plt.annotate(f'cc_top', (int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1])))
+        # cc_top = np.array([
+        #     (42, 110)
+        # ])
+        # print(f'cc_top before: {cc_top}')
+        # cv2.circle(img, cc_top[0], 3, (0, 0, 255), -1)
+        # cv2.putText(img, 'cc_top', cc_top[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        # cc_top_transformed = cv2.perspectiveTransform(cc_top.reshape(-1, 1, 2).astype(float), H_video_to_court.astype(float))
+        # cc_top_transformed = cc_top_transformed.reshape(-1, 2)
+        # print(f'cc_top after: {cc_top_transformed}')
+        # #add to grid
+        # plt.scatter(int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1]))
+        # plt.annotate(f'cc_top', (int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1])))
 
 
         #NOTE: trying to go court to video
@@ -167,8 +168,8 @@ if __name__ == '__main__':
                                                       H_court_to_video.astype(float))
         rk_top_left_transformed = rk_top_left_transformed.reshape(-1, 2)
         rk_top_left_transformed = (int(rk_top_left_transformed[0][0]), int(rk_top_left_transformed[0][1]))
-        cv2.circle(img, rk_top_left_transformed, 3, (0, 0, 255), -1)
-        cv2.putText(img, 'rk top left', rk_top_left_transformed, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        cv2.circle(resized_img, rk_top_left_transformed, 3, (0, 0, 255), -1)
+        cv2.putText(resized_img, 'rk top left', rk_top_left_transformed, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
         print(f'rk top left after: {rk_top_left_transformed}')
 
