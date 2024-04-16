@@ -13,7 +13,7 @@ import numpy as np
 from model_deconv import vanilla_Unet2
 import torch
 from torchvision import transforms
-from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
+from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements, get_homography_from_points
 
 
 def make_parser():
@@ -110,9 +110,10 @@ def main(args):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float
     fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f'input video: {width, height}')
 
     vid_writer = cv2.VideoWriter(
-        args.output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (256, 256)
+        args.output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height)
     )
 
     # load homography model and define some constants
@@ -138,10 +139,20 @@ def main(args):
             # print(f'model output after converting back to image {batch_out.shape}')
 
             #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
-            img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
+            resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
                                                                               write_on_image=False,
                                                                               lines_nb=len(lines_y),
                                                                               markers_x=markers_x, lines_y=lines_y)
+
+            cv2.imwrite('images/debug_original.jpg', frame)
+            cv2.imwrite('images/debug_resized.jpg', resized_img)
+            H = get_homography_from_points(src_pts, dst_pts, size,
+                                           field_length=field_length, field_width=field_width)
+            warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
+            cv2.imwrite('images/debug_warped.jpg', warped_img)
+            return
+
+
 
             src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
             if len(src_pts) < 4:
