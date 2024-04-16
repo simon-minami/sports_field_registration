@@ -146,6 +146,7 @@ def main(args):
             src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
             if len(src_pts) < 4:
                 vid_writer.write(frame)
+                ret_val, frame = cap.read()
                 continue
 
             H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
