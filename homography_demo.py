@@ -129,8 +129,6 @@ def main(args):
     with torch.no_grad():
         ret_val, frame = cap.read()
         while ret_val:
-
-
             # apply necessary preprocessing to frame
             # load and preprocess image following steps in video_display_dataloader.py
             resized_img, tensor_img = preprocess(frame, size)
@@ -146,6 +144,9 @@ def main(args):
                                                                               markers_x=markers_x, lines_y=lines_y)
 
             src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
+            if len(src_pts<4):
+                vid_writer.write(frame)
+                continue
 
             H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
             H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
