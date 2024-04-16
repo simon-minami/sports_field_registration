@@ -3,7 +3,6 @@ contains homography functions that will be used in main tracking data loop (trac
 '''
 import cv2
 import numpy as np
-from model_deconv import vanilla_Unet2
 import torch
 from torchvision import transforms
 from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
