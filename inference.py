@@ -151,6 +151,26 @@ if __name__ == '__main__':
         #add to grid
         plt.scatter(int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1]))
         plt.annotate(f'cc_top', (int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1])))
+
+
+        #NOTE: trying to go court to video
+        H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
+        rk_top_left = np.array([
+            (75, 31)
+        ])
+        print(f'rk top left before: {rk_top_left}')
+        # add to grid
+        plt.scatter(rk_top_left[0][0], rk_top_left[0][1])
+        plt.annotate(f'rk top left', (rk_top_left[0][0], rk_top_left[0][1]))
+
+        rk_top_left_transformed = cv2.perspectiveTransform(rk_top_left.reshape(-1, 1, 2).astype(float),
+                                                      H_court_to_video.astype(float))
+        rk_top_left_transformed = rk_top_left_transformed.reshape(-1, 2)
+        cv2.circle(img, rk_top_left_transformed[0], 3, (0, 0, 255), -1)
+        cv2.putText(img, 'rk top left', cc_top[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+
+        print(f'rk top left after: {rk_top_left_transformed}')
+
         plt.savefig('images/grid_out.png')
 
 
@@ -158,25 +178,26 @@ if __name__ == '__main__':
 
 
 
-        # # NOTE: drawing the original video key points on warped iamge
-        video_pts = np.array(src_pts).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
-        video_pts_transformed = cv2.perspectiveTransform(video_pts, H.astype(float))
-        video_pts_transformed = video_pts_transformed.astype(int).reshape(-1, 2)
-        print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
-        for pt in video_pts_transformed:
-            cv2.circle(warped_img, pt, 3, (0, 0, 255), -1)
 
-        # NOTE: trying to draw court lines!!!!
-        court_pts = np.array(
-            [(75, 19), (75, 31)]
-        ).reshape(-1, 1, 2).astype(float)
-        court_pts_transformed = cv2.perspectiveTransform(court_pts, H_court_to_video)
-        court_pts_transformed = court_pts_transformed.astype(int).reshape(-1, 2)
-        print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
-        names = ['rk top left', 'rk bottom left']
-        for pt, name in zip(video_pts_transformed, names):
-            cv2.circle(draw_img, pt, 3, (0, 0, 255), -1)
-            cv2.putText(draw_img, name, (pt[0] - 30, pt[1] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        # # # NOTE: drawing the original video key points on warped iamge
+        # video_pts = np.array(src_pts).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
+        # video_pts_transformed = cv2.perspectiveTransform(video_pts, H.astype(float))
+        # video_pts_transformed = video_pts_transformed.astype(int).reshape(-1, 2)
+        # print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
+        # for pt in video_pts_transformed:
+        #     cv2.circle(warped_img, pt, 3, (0, 0, 255), -1)
+        #
+        # # NOTE: trying to draw court lines!!!!
+        # court_pts = np.array(
+        #     [(75, 19), (75, 31)]
+        # ).reshape(-1, 1, 2).astype(float)
+        # court_pts_transformed = cv2.perspectiveTransform(court_pts, H_court_to_video)
+        # court_pts_transformed = court_pts_transformed.astype(int).reshape(-1, 2)
+        # print(f'debug: {video_pts_transformed.shape}, {video_pts_transformed}')
+        # names = ['rk top left', 'rk bottom left']
+        # for pt, name in zip(video_pts_transformed, names):
+        #     cv2.circle(draw_img, pt, 3, (0, 0, 255), -1)
+        #     cv2.putText(draw_img, name, (pt[0] - 30, pt[1] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
         # court_corners = np.array([
         #     [0, 0], [94, 0], [94, 50], [0, 50]
