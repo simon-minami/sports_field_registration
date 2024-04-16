@@ -62,14 +62,12 @@ if __name__ == '__main__':
     field_width = 25
     lines_y = np.linspace(0, field_width, 11)
 
-    path = 'pool model.pth'
     model = vanilla_Unet(final_depth=len(markers_x) + len(lines_y))
 
     batch_size = 64
 
-    models_path = 'models'
+    model_path = 'models/bball_new_epoch44.pth'
 
-    model_path = os.path.join(models_path, path)
     model.load_state_dict(load(model_path))
     model = model.cuda()
     model.eval()
@@ -82,8 +80,8 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    # img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
-    img_path = 'images/test_image.jpg'
+    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
+    # img_path = 'images/test_image.jpg'
 
     img = io.imread(img_path)
     # img = self.zoom_out(img)
