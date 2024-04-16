@@ -14,7 +14,7 @@ from model_deconv import vanilla_Unet2
 import torch
 from torchvision import transforms
 from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
-
+import sys
 
 def make_parser():
     parser = argparse.ArgumentParser("Jacquelin et al Homography Demo")
@@ -27,6 +27,7 @@ def make_parser():
 def preprocess(img, size):
     '''
     apply necessary preprocess to img before inputing into model
+    also returns resized version of original
     '''
     img_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -35,16 +36,16 @@ def preprocess(img, size):
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img = cv2.resize(img, size)
+    resized_img = cv2.resize(img, size)
 
-    tensor_img = img_transform(img)
+    tensor_img = img_transform(resized_img)
     print(f'shape before .view {tensor_img.size()}')
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
     print(f'shape after .view {tensor_img.size()}')
 
     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
-    return tensor_img
+    return resized_img, tensor_img
 
 def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
     if batched : index_shift = 1
@@ -128,16 +129,21 @@ def main(args):
     with torch.no_grad():
         ret_val, frame = cap.read()
         while ret_val:
+            # get current frame
+            frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
+            if frame_id % 30 == 0:
+                print(f'processed {frame_id} frames', file=sys.stderr)
+
             # apply necessary preprocessing to frame
             # load and preprocess image following steps in video_display_dataloader.py
-            tensor_img = preprocess(frame, size)
+            resized_img, tensor_img = preprocess(frame, size)
             batch_out = model(tensor_img)
             print(f'model output before {batch_out.size()}')
             batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
             print(f'model output after converting back to image {batch_out.shape}')
 
             #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
-            img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(img, batch_out[0], threshold,
+            img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
                                                                               write_on_image=False,
                                                                               lines_nb=len(lines_y),
                                                                               markers_x=markers_x, lines_y=lines_y)
