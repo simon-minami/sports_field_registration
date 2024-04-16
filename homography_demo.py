@@ -163,9 +163,11 @@ def main(args):
 
             # get current frame
             frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
-            if frame_id % 30 == 0:
+            if frame_id % 120 == 0:
                 print(f'processed {frame_id} frames')
                 cv2.imwrite(f'images/homography_frame{frame_id}.jpg', frame)
+
+            ret_val, frame = cap.read()
 
 
 if __name__ == "__main__":
