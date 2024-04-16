@@ -3,6 +3,8 @@
 given input image, gets the predicted homography
 RIGHT NOW: trying to implement on the swim model, swim image etc.
 AFTER: once we confirms it works on the swim stuff, we can try training basketball model and then doing inference
+
+outputs a variety of image transformations based on the predicted homography
 '''
 
 import torch
@@ -80,8 +82,8 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
-    # img_path = 'images/test_image.jpg'
+    # img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
+    img_path = 'images/unseen_test.png'
 
     img = io.imread(img_path)
     # img = self.zoom_out(img)
