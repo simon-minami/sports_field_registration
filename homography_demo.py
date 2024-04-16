@@ -129,10 +129,7 @@ def main(args):
     with torch.no_grad():
         ret_val, frame = cap.read()
         while ret_val:
-            # get current frame
-            frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
-            if frame_id % 30 == 0:
-                print(f'processed {frame_id} frames')
+
 
             # apply necessary preprocessing to frame
             # load and preprocess image following steps in video_display_dataloader.py
@@ -153,9 +150,21 @@ def main(args):
             H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
             H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
 
-            frame = draw_court_lines(frame, H_court_to_video)
+            # maps to a 256x256 video, need to scale
+            scale_factor = np.eye(3)  # start with identify
+            scale_factor[0, 0] = width / size[0]
+            scale_factor[1, 1] = height / size[1]
+
+            H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+            frame = draw_court_lines(frame, H_court_to_video_scaled)
 
             vid_writer.write(frame)
+
+            # get current frame
+            frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
+            if frame_id % 30 == 0:
+                print(f'processed {frame_id} frames')
+                cv2.imwrite(f'images/homography_frame{frame_id}.jpg', frame)
 
 
 if __name__ == "__main__":
