@@ -150,7 +150,7 @@ if __name__ == '__main__':
         print(f'cc_top after: {cc_top_transformed}')
         #add to grid
         plt.scatter(int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1]))
-        plt.annotate(f'cc_top', int((cc_top_transformed[0][0]), int(cc_top_transformed[0][1])))
+        plt.annotate(f'cc_top', (int(cc_top_transformed[0][0]), int(cc_top_transformed[0][1])))
         plt.savefig('images/grid_out.png')
 
 
