@@ -231,11 +231,71 @@ if __name__ == '__main__':
 
         cv2.line(draw_img, pt1, pt2, (0, 0, 255), 3)
 
+
+
+        #NOTE: trying to draw court lines on original scale image
+        # # NOTE: trying to draw court lines!!!!
+        court_corners = np.array([
+            [0, 0], [94, 0], [94, 50], [0, 50]
+        ], dtype=float)
+        right_key = np.array([
+            (75, 19), (94, 19), (94, 31), (75, 31)
+        ], dtype=float)
+        half_court = np.array([
+            (47, 0), (47, 50)
+        ], dtype=float)
+
+        court_corners = court_corners.reshape(-1, 1, 2)  # need to reshape for transformation
+        right_key = right_key.reshape(-1, 1, 2)
+        half_court = half_court.reshape(-1, 1, 2)
+
+        print(f'original shape: {img.shape}')
+        scale_factor = np.eye(3)
+        scale_factor[0, 0] = img.shape[0] / size[0]
+        scale_factor[1, 1] = img.shape[1] / size[1]
+        H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+
+        court_corners_video = cv2.perspectiveTransform(court_corners, H_court_to_video_scaled)
+        right_key_video = cv2.perspectiveTransform(right_key, H_court_to_video_scaled)
+        half_court_video = cv2.perspectiveTransform(half_court, H_court_to_video_scaled)
+        # print(court_corners_video, court_corners_video.shape)
+
+        court_corners_video = court_corners_video.astype(int).reshape(-1, 2)
+        right_key_video = right_key_video.astype(int).reshape(-1, 2)
+        half_court_video = half_court_video.astype(int).reshape(-1, 2)
+
+        # prinkt(court_corners_video, court_corners_video.shape)
+        pt1 = court_corners_video[0, :]
+        pt2 = court_corners_video[1, :]
+        pt3 = court_corners_video[2, :]
+        pt4 = court_corners_video[3, :]
+
+        cv2.line(img, pt1, pt2, (0, 0, 255), 3)
+        cv2.line(img, pt2, pt3, (0, 0, 255), 3)
+        cv2.line(img, pt3, pt4, (0, 0, 255), 3)
+        cv2.line(img, pt4, pt1, (0, 0, 255), 3)
+
+        pt1 = right_key_video[0, :]
+        pt2 = right_key_video[1, :]
+        pt3 = right_key_video[2, :]
+        pt4 = right_key_video[3, :]
+
+        cv2.line(img, pt1, pt2, (0, 0, 255), 3)
+        cv2.line(img, pt2, pt3, (0, 0, 255), 3)
+        cv2.line(img, pt3, pt4, (0, 0, 255), 3)
+        cv2.line(img, pt4, pt1, (0, 0, 255), 3)
+
+        pt1 = half_court_video[0, :]
+        pt2 = half_court_video[1, :]
+
+        cv2.line(img, pt1, pt2, (0, 0, 255), 3)
         print(f'there are {len(src_pts)} src pts: {src_pts}')
 
         print(f'there are {len(dst_pts)} dst pts: {dst_pts}')
 
         print(f'homography M: {H}')
-        cv2.imwrite('images/test_output.jpg', img)
+        cv2.imwrite('images/test_output.jpg', resized_img)
         cv2.imwrite('images/warp_output.jpg', warped_img)
         cv2.imwrite('images/output_lines.jpg', draw_img)
+        cv2.imwrite('images/output_lines_original.jpg', img)
+
