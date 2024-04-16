@@ -144,7 +144,7 @@ def main(args):
                                                                               markers_x=markers_x, lines_y=lines_y)
 
             src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
-            if len(src_pts<4):
+            if len(src_pts) < 4:
                 vid_writer.write(frame)
                 continue
 
