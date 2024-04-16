@@ -251,8 +251,8 @@ if __name__ == '__main__':
 
         print(f'original shape: {img.shape}')
         scale_factor = np.eye(3)
-        scale_factor[0, 0] = img.shape[0] / size[0]
-        scale_factor[1, 1] = img.shape[1] / size[1]
+        scale_factor[0, 0] = img.shape[1] / size[0]
+        scale_factor[1, 1] = img.shape[0] / size[1]
         H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
 
         court_corners_video = cv2.perspectiveTransform(court_corners, H_court_to_video_scaled)
