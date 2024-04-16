@@ -14,6 +14,7 @@ from torchvision import transforms
 from torchvision.transforms.functional import rotate as rotate_tensor
 import cv2
 import os
+import matplotlib.pyplot as plt
 
 import numpy as np
 
@@ -116,6 +117,29 @@ if __name__ == '__main__':
         H_court_to_video = H_court_to_video.astype(float)
         draw_img = copy.copy(img)
         # # testing drawing outline
+        # # NOTE: drawing the original video key points on original image
+        for i, pt in enumerate(src_pts):
+            cv2.circle(img, pt, 3, (0, 0, 255), -1)
+            cv2.putText(draw_img, f'pt{i}', (pt[0] - 30, pt[1] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+
+        ##NOTE: corresponding dst points on court grid
+        # Plot the points
+        x_coords = [coord[0] for coord in dst_pts]
+        y_coords = [coord[1] for coord in dst_pts]
+        plt.scatter(x_coords, y_coords)
+
+        # Optionally, add labels for each point
+        for i, (x, y) in enumerate(dst_pts):
+            plt.annotate(f'pt{i}', (x, y))
+        # Invert the y-axis
+        plt.gca().invert_yaxis()
+        # Set the same spacing for x and y axes
+        plt.axis('equal')
+        plt.savefig('grid_out.png')
+
+
+
+
         # # NOTE: drawing the original video key points on warped iamge
         video_pts = np.array(src_pts).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
         video_pts_transformed = cv2.perspectiveTransform(video_pts, H.astype(float))
