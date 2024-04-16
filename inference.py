@@ -137,6 +137,24 @@ if __name__ == '__main__':
         plt.axis('equal')
         plt.savefig('images/grid_out.png')
 
+        # NOTE: trying to go from video to court
+        H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC)
+        cc_top = np.array([
+            (42, 110)
+        ]).astype(float)
+        print(f'cc_top before: {cc_top}')
+        cv2.circle(img, cc_top[0], 3, (0, 0, 255), -1)
+        cv2.putText(img, 'cc_top', cc_top[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        cc_top_transformed = cv2.perspectiveTransform(cc_top.reshape(-1, 1, 2), H_video_to_court.astype(float))
+        cc_top_transformed = cc_top_transformed.reshape(-1, 2)
+        print(f'cc_top after: {cc_top_transformed}')
+        #add to grid
+        plt.scatter(cc_top_transformed[0][0], cc_top_transformed[0][1])
+        plt.annotate(f'cc_top', (cc_top_transformed[0][0], cc_top_transformed[0][1]))
+        plt.savefig('images/grid_out.png')
+
+
+
 
 
 
