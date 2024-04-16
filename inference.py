@@ -83,7 +83,7 @@ if __name__ == '__main__':
     ])
 
     # img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
-    img_path = 'images/unseen_test.png'
+    img_path = 'images/unseen_test2.png'
 
     img = io.imread(img_path)
     # img = self.zoom_out(img)
