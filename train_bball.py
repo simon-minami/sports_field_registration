@@ -24,10 +24,10 @@ if __name__=='__main__':
     # lines_nb = 11
     lines_nb = 7 #NOTE: it was originally 11 (maybe for swim, we have to change to 7 for the soccer/bball?)
 
-    model = vanilla_Unet(final_depth=22).cuda()
+    model = vanilla_Unet2(final_depth=22).cuda()
 
     model_prefix = ''
-    batch_size = 6
+    batch_size = 8
     models_path = './models/'
     epochs_already_trained = 0
 
@@ -141,9 +141,9 @@ if __name__=='__main__':
             total_epoch_loss /= len(test_dataloader)
 
             print('test :', total_epoch_loss, epoch + 1)
-            if total_epoch_loss < prev_best_loss:
+            if (total_epoch_loss < prev_best_loss) and (epoch > 40):
                 prev_best_loss = total_epoch_loss
-                save(model.state_dict(), models_path + model_prefix + f'bball_unetv1_epoch{epoch}.pth')
+                save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
             print()
         torch.cuda.empty_cache()
