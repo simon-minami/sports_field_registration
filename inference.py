@@ -120,7 +120,7 @@ if __name__ == '__main__':
         # # NOTE: drawing the original video key points on original image
         for i, pt in enumerate(src_pts):
             cv2.circle(img, pt, 3, (0, 0, 255), -1)
-            cv2.putText(img, f'pt{i}', (pt[0] - 30, pt[1] - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            cv2.putText(img, f'pt{i}', pt, cv2.FONT_HERSHEY_SIMPLEX, 0.25, (0, 255, 0), 1)
 
         ##NOTE: corresponding dst points on court grid
         # Plot the points
