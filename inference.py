@@ -166,8 +166,9 @@ if __name__ == '__main__':
         rk_top_left_transformed = cv2.perspectiveTransform(rk_top_left.reshape(-1, 1, 2).astype(float),
                                                       H_court_to_video.astype(float))
         rk_top_left_transformed = rk_top_left_transformed.reshape(-1, 2)
-        cv2.circle(img, rk_top_left_transformed[0], 3, (0, 0, 255), -1)
-        cv2.putText(img, 'rk top left', cc_top[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        rk_top_left_transformed = (int(rk_top_left_transformed[0][0]), int(rk_top_left_transformed[0][1]))
+        cv2.circle(img, rk_top_left_transformed, 3, (0, 0, 255), -1)
+        cv2.putText(img, 'rk top left', rk_top_left_transformed, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
         print(f'rk top left after: {rk_top_left_transformed}')
 
