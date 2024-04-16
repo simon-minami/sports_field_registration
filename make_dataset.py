@@ -13,13 +13,13 @@ WHITE = (255, 255, 255)
 # not sure how important this is, but will make imgs same size as soccer just in case
 
 # TODO: NEED TO PUT BACK THE RESIZING, BECAUSE THE TEMPLATE USED IN TRAINING IS FIT TO THIS SIZE
-# IMG_WIDTH = 1280
-# IMG_HEIGHT = 720
+IMG_WIDTH = 1280
+IMG_HEIGHT = 720
 
 # Reading input video, setting up save directories
 # overarching is dataset/ncaa_bball
 # file structure is dataset/ncaa_bball/annotations or images/game name/.npy (annotations) or .png (images)
-input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20230220_WVU_OklahomaSt.mov"
+input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20230217_washingtonst_oregon.mp4"
 video_name = os.path.basename(input_video_path)
 # If you want to remove the file extension as well
 video_name_without_extension = os.path.splitext(video_name)[0]
@@ -71,8 +71,8 @@ cap = cv2.VideoCapture(input_video_path)
 fps = cap.get(cv2.CAP_PROP_FPS)
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-vid_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # get width of input video
-vid_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # get height of input video
+# vid_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # get width of input video
+# vid_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # get height of input video
 
 court_width = 94  # length of bball court
 court_height = 50  # width of bball court
@@ -169,7 +169,7 @@ plt.axis('equal')
 plt.show()
 
 ret_val, frame = cap.read()
-# frame = cv2.resize(frame, (IMG_WIDTH, IMG_HEIGHT))
+frame = cv2.resize(frame, (IMG_WIDTH, IMG_HEIGHT))
 cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
 cv2.moveWindow('Frame', 0, 0)
 
@@ -198,8 +198,8 @@ while ret_val:
             cv2.waitKey(1)  # Wait for a key press for 1 ms
 
         # now we need to scale dst pts to the image size
-        x_scale = vid_width / court_width
-        y_scale = vid_height / court_height
+        x_scale = IMG_WIDTH / court_width
+        y_scale = IMG_HEIGHT / court_height
         dst_points = [(x_scale * x, y_scale * y) for (x, y) in dst_points]
 
         # Now we have a list of at least 4 (src, dst) pairs
@@ -225,7 +225,7 @@ while ret_val:
     # Read next frame
     cap.set(cv2.CAP_PROP_POS_FRAMES, int(current_frame + frame_skip))
     ret_val, frame = cap.read()
-    # frame = cv2.resize(frame, (IMG_WIDTH, IMG_HEIGHT))
+    frame = cv2.resize(frame, (IMG_WIDTH, IMG_HEIGHT))
 
 cv2.destroyAllWindows()
 cap.release()

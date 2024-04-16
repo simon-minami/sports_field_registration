@@ -19,11 +19,14 @@ if __name__ == '__main__':
     # image_path = 'dataset/RegiSwim Dataset/frames/train_all/swimming_pool_01_SET_600_lq_0001.jpg'
     # annotation_path = 'dataset/RegiSwim Dataset/homographies/swimming_pool_01_SET_600_lq_0001.homography.npy'
 
-    image_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.jpg"
-    annotation_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.homographyMatrix"
+    # image_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.jpg"
+    # annotation_path = "C:/Users/simon/Downloads/soccer_data/raw/train_val/99.homographyMatrix"
+
+    image_path = 'dataset/ncaa_bball/images/20230217_washingtonst_oregon/frame_541.jpg'
+    annotation_path = 'dataset/ncaa_bball/annotations/20230217_washingtonst_oregon/frame_541.npy'
 
     print('test')
-    print(np.loadtxt(annotation_path))
+    # print(np.loadtxt(annotation_path))
 
     # field_length = 50
     # field_width = 25
@@ -31,12 +34,15 @@ if __name__ == '__main__':
     frame = cv2.imread(image_path)
     print(frame.shape)
     # frame = cv2.resize(frame, (256, 256))
-    scale_factor = np.eye(3)
-    scale_factor[0, 0] = 1280 / 115
-    scale_factor[1, 1] = 720 / 74
-    h_initial = np.loadtxt(annotation_path).astype(float)
 
-    H = np.matmul(scale_factor, h_initial)
+    #NOTE: only need to scale if youre visualizing soccer dataset, bball datset was scaled when dataset made
+    # scale_factor = np.eye(3)
+    # scale_factor[0, 0] = 1280 / 115
+    # scale_factor[1, 1] = 720 / 74
+    # h_initial = np.loadtxt(annotation_path).astype(float)
+
+    # H = np.matmul(scale_factor, h_initial)
+    H = np.load(annotation_path)
 
     warped = cv2.warpPerspective(frame, H, (frame.shape[1], frame.shape[0]))
     # H = np.linalg.inv(H)
