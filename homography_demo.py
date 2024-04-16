@@ -112,7 +112,7 @@ def main(args):
     fps = cap.get(cv2.CAP_PROP_FPS)
 
     vid_writer = cv2.VideoWriter(
-        args.output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height)
+        args.output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (256, 256)
     )
 
     # load homography model and define some constants
@@ -153,12 +153,12 @@ def main(args):
             if H_video_to_court is not None:
                 H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
 
-                scale_factor = np.eye(3)
-                scale_factor[0, 0] = width / size[0]
-                scale_factor[1, 1] = height / size[1]
-
-                H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
-                frame = draw_court_lines(frame, H_court_to_video_scaled)
+                # scale_factor = np.eye(3)
+                # scale_factor[0, 0] = width / size[0]
+                # scale_factor[1, 1] = height / size[1]
+                #
+                # H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+                frame = draw_court_lines(frame, H_court_to_video)
             else:
                 print("Homography could not be determined for this frame.")
 
