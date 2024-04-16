@@ -10,7 +10,7 @@ from imageio import mimread
 import cv2
 from cv2 import resize, GaussianBlur, findHomography,\
                 warpPerspective, getRotationMatrix2D, warpAffine
-from utils.homography_utils import augment_matrix
+from sfr_utils.homography_utils import augment_matrix
 import numpy as np
 from random import random
 

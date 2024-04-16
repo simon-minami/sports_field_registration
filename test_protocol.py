@@ -15,9 +15,9 @@ matplotlib.use('TkAgg')
 from model import vanilla_Unet
 from model_deconv import vanilla_Unet2
 
-from utils.geometry_utils import get_whole_fields_intersection
+from sfr_utils.geometry_utils import get_whole_fields_intersection
 from benchmark_dataloader import get_benchmark_dataloaders
-from utils.grid_utils import get_landmarks_positions, get_homography_from_points, conflicts_managements
+from sfr_utils.grid_utils import get_landmarks_positions, get_homography_from_points, conflicts_managements
 
 
 def get_IOU(projected_template, projected_template_truth) :

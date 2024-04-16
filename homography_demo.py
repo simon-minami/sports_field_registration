@@ -13,7 +13,7 @@ import numpy as np
 from model_deconv import vanilla_Unet2
 import torch
 from torchvision import transforms
-from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements, get_homography_from_points
+from sfr_utils.grid_utils import get_faster_landmarks_positions, conflicts_managements, get_homography_from_points
 
 
 def make_parser():
