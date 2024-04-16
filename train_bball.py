@@ -21,8 +21,10 @@ if __name__=='__main__':
 
     train_img_path = 'dataset/ncaa_bball/images'
     out_path = 'data_management/grids'
-    lines_nb = 11
-    model = vanilla_Unet(final_depth=22).cuda()
+    # lines_nb = 11
+    lines_nb = 7 #NOTE: it was originally 11 (maybe for swim, we have to change to 7 for the soccer/bball?)
+
+    model = vanilla_Unet2(final_depth=22).cuda()
 
     model_prefix = ''
     batch_size = 10
@@ -64,7 +66,7 @@ if __name__=='__main__':
     #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
 
     ## try fine tuning on pool model
-    model.load_state_dict(load(models_path + model_prefix + 'pool model.pth'))
+    model.load_state_dict(load(models_path + model_prefix + 'soccer model.pth'))
 
 
     display_counter = 0
@@ -141,7 +143,7 @@ if __name__=='__main__':
             print('test :', total_epoch_loss, epoch + 1)
             if total_epoch_loss < prev_best_loss:
                 prev_best_loss = total_epoch_loss
-                save(model.state_dict(), models_path + model_prefix + f'bball_new_epoch{epoch}.pth')
+                save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
             print()
         torch.cuda.empty_cache()

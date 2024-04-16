@@ -26,8 +26,8 @@ if __name__ == '__main__' :
     lines = np.linspace(0, field_width, 7)
 
     # img_size = (256, 256)
-    # img_size = (720, 1280)
-    img_size = (1280, 720)
+    img_size = (720, 1280)
+    # img_size = (1280, 720) WRONG
 
 
     spot_size = (10, 15) # pixel size of each element
