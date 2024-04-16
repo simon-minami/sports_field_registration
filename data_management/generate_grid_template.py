@@ -52,7 +52,7 @@ if __name__ == '__main__' :
 
     plt.imshow(np.max(data_np, axis=0))
     plt.show()
-
+    print(f'template: {data_np.shape}')
     np.save(data_path_np, data_np)
 
 

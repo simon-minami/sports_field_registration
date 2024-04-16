@@ -45,9 +45,12 @@ if __name__ == "__main__" :
     # display = True
 
     template = np.load(template_path)
+    print(f'template before swap: {template.shape}')
+
     template = np.swapaxes(template, 2, 0)
     template = np.swapaxes(template, 0, 1)
     # template = resize(template, out_size)
+    print(f'template after swap: {template.shape}')
 
     for img_name, h in zip(files, matrices) :
 
@@ -64,8 +67,9 @@ if __name__ == "__main__" :
             h_back = np.linalg.inv(h)
 
             result = warpPerspective(template, h_back, out_size)
+            print(f'result: {result.shape}')
             result = resize(result, final_size)
-            # print(result.shape)
+            print(f'result after final resize: {result.shape}')
             # cv2.waitKey(0)
 
             result = GaussianBlur(result, (5, 5), 0)

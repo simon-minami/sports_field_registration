@@ -60,6 +60,8 @@ if __name__ == '__main__':
     # cv2.line(frame, pt3, pt4, (0, 0, 255), 3)
     # cv2.line(frame, pt4, pt1, (0, 0, 255), 3)
     cv2.imshow('frame', frame)
+    cv2.imshow('warped', warped)
+
     cv2.imwrite('images/initial.jpg', frame)
     cv2.imwrite('images/warped.jpg', warped)
 
