@@ -19,7 +19,7 @@ IMG_HEIGHT = 720
 # Reading input video, setting up save directories
 # overarching is dataset/ncaa_bball
 # file structure is dataset/ncaa_bball/annotations or images/game name/.npy (annotations) or .png (images)
-input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20230217_washingtonst_oregon.mp4"
+input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20230220_WVU_OklahomaSt.mov"
 video_name = os.path.basename(input_video_path)
 # If you want to remove the file extension as well
 video_name_without_extension = os.path.splitext(video_name)[0]
@@ -43,14 +43,15 @@ else:
 # now we have to add the game to the txt file
 # Read the file into a list of lines
 with open(train_file_path, 'r') as file:
-    lines = file.readlines()
+    lines = [line.strip() for line in file.readlines()]
 
 # Check if the line exists and add it if not
 if video_name_without_extension not in lines:
     lines.append(video_name_without_extension)
     # Write the updated list back to the file
     with open(train_file_path, 'w') as file:
-        file.writelines(lines)
+        for line in lines:
+            file.write(f"{line}\n")
     print(f'Game {video_name_without_extension} added to {train_file_path}.')
 else:
     print(f'Game {video_name_without_extension} already in {train_file_path}.')
