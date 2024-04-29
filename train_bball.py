@@ -29,11 +29,11 @@ if __name__=='__main__':
     model_prefix = ''
     batch_size = 8
     models_path = './models/'
-    epochs_already_trained = 0
+    epochs_already_trained = 45
 
     size = (256, 256)
     lr = 1e-3
-    epochs_nb = 50
+    epochs_nb = 100
 
     optimizer_function = Adam
     save_after_N_epochs = 5
@@ -65,14 +65,14 @@ if __name__=='__main__':
     # if epochs_already_trained != 0:
     #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
 
-    ## try fine tuning on pool model
-    model.load_state_dict(load(models_path + model_prefix + 'soccer model.pth'))
+    ## additional training on already trained model
+    model.load_state_dict(load(models_path + model_prefix + 'bball_unetv2_epoch45'))
 
 
     display_counter = 0
     prev_best_loss = 1000
 
-    for epoch in range(epochs_already_trained, epochs_already_trained + epochs_nb) :
+    for epoch in range(epochs_already_trained, epochs_already_trained + epochs_nb):
 
         train_dataloader.temperature *= stagnation
 
@@ -141,7 +141,7 @@ if __name__=='__main__':
             total_epoch_loss /= len(test_dataloader)
 
             print('test :', total_epoch_loss, epoch + 1)
-            if (total_epoch_loss < prev_best_loss) and (epoch > 40):
+            if (total_epoch_loss < prev_best_loss) and (epoch > 90): # only want to save the later models to save space
                 prev_best_loss = total_epoch_loss
                 save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
