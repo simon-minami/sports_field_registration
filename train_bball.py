@@ -66,7 +66,7 @@ if __name__=='__main__':
     #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
 
     ## additional training on already trained model
-    model.load_state_dict(load(models_path + model_prefix + 'bball_unetv2_epoch45'))
+    model.load_state_dict(load(models_path + model_prefix + 'bball_unetv2_epoch45.pth'))
 
 
     display_counter = 0
