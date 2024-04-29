@@ -19,7 +19,7 @@ IMG_HEIGHT = 720
 # Reading input video, setting up save directories
 # overarching is dataset/ncaa_bball
 # file structure is dataset/ncaa_bball/annotations or images/game name/.npy (annotations) or .png (images)
-input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20230220_WVU_OklahomaSt.mov"
+input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20240106_duke_notredame_h1.mp4"
 video_name = os.path.basename(input_video_path)
 # If you want to remove the file extension as well
 video_name_without_extension = os.path.splitext(video_name)[0]

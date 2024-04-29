@@ -20,7 +20,7 @@ if __name__=='__main__':
     # writer = SummaryWriter('runs/training')
 
     train_img_path = 'dataset/ncaa_bball/images'
-    out_path = 'data_management/grids'
+    out_path = 'dataset/ncaa_bball/grids'
     # lines_nb = 11
     lines_nb = 7 #NOTE: it was originally 11 (maybe for swim, we have to change to 7 for the soccer/bball?)
 

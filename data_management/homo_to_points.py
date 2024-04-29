@@ -27,6 +27,7 @@ if __name__ == "__main__" :
     # save_path = "./dense_grid/"
     # template_path = './dense_grid.npy'
     save_path = "grids"
+    # save_path = "../dataset/ncaa_bball/grids"
     template_path = 'grid.npy'
 
     if not os.path.exists(save_path) : os.mkdir(save_path)

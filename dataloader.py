@@ -310,43 +310,58 @@ class BballDataset(Dataset):
         # in original img path is frames/train_all
         # images: start with dataset/ncaa_bball/images
         # out path is datamangement/grids/
-        # self.yes_img should be list of img file names
+        # self.img_paths should be list of img file paths
 
         # Open the file in read mode ('r')
         # train_file contains the names of all the games to be loaded (ex: 20230220_WVU_OklahomaSt)
-        yes_img = []
+        img_paths = []
         # yes_out = []
         with open(train_file, 'r') as file:
             # Iterate through each line in the file
             for line in file:
-                imgs = os.listdir(os.path.join(img_path, line))  # load all the imgs in this game folder
+                game_folder = line.strip()  # need line.strip() to get rid of \n
+                imgs = os.listdir(os.path.join(img_path, game_folder))  # load all the imgs in this game folder
                 # annotations = os.listdir(os.path.join(out_path, line))  # load all the homo matrices in this game folder
 
-                yes_img.extend([os.path.join(img_path, line, img) for img in imgs])
+                img_paths.extend([os.path.join(img_path, game_folder, img) for img in imgs])
                 # yes_out.extend([os.path.join(out_path, line, M) for M in annotations])
 
-        self.yes_img = sorted(yes_img)
-        # self.yes_out = sorted(yes_out)
-        print(f'loaded images: {self.yes_img}')
+        self.img_paths = sorted(img_paths)
+        # NOTE: img_paths is list of 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg'
+        # print(f'loaded images: {self.img_paths}')
 
-        # yes_img = os.listdir(img_path)
-        # yes_img = [os.path.join(img_path, f) for f in yes_img]
-        # yes_img.sort()
-        # yes_img.sort(key=len)
-        # self.yes_img = yes_img
+        # NOTE: honestly, we don't even need the dictionary for the npy files
+        #  as long as we have outpath, we can just append 20230220_WVU_OklahomaSt/frame_1.jpg to the outpath
+
+        # location of all the training grids, will be dataset/ncaa_bball/grids
+        self.grids_path = out_path
+        # img_paths = os.listdir(img_path)
+        # img_paths = [os.path.join(img_path, f) for f in img_paths]
+        # img_paths.sort()
+        # img_paths.sort(key=len)
+        # self.img_paths = img_paths
 
         # TODO: we'll have to change this around to handle multple game folders
-        yes_out = sorted(os.listdir(out_path))
+        # out path is gonna be 'dataset/ncaa_bball/grids'
+        # yes_out = sorted(os.listdir(out_path))
+
+        #TODO: dic keys will have to have the game folder in the name
         # yes_out.sort()
         # yes_out.sort(key=len)
-        dico = {}
-        for f in yes_out :
-            dico[f] = os.path.join(out_path, f)
-        self.yes_out = dico
-        print(f'loaded outputs: {self.yes_out}')
+        # right now key value pair: 'frame_1.npy': 'data_management/grids/frame_1.npy'
+        # since we have possiblity of multiple frame_1.npy, we need to have game folder name
+        # we want: key value: 2023oregon/frame1.npy, dataset/ncaa_bball/grids/frame1.npy
 
 
-        self.len = len(self.yes_img)
+
+        # dico = {}
+        # for f in yes_out :
+        #     dico[f] = os.path.join(out_path, f)
+        # self.yes_out = dico
+        # print(f'loaded outputs: {self.yes_out}')
+
+
+        self.len = len(self.img_paths)
 
         self.lines_nb = lines_nb
 
@@ -354,14 +369,25 @@ class BballDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        img_path = self.yes_img[idx]
+        img_path = self.img_paths[idx]
         img = io.imread(img_path)
 
-        img_name = img_path.split('/')[-1]
-        out_name = img_name.replace("jpg", "npy")
-        out_name = self.yes_out[out_name]
-        out = np.load(out_name) / 255
+        # img_name = img_path.split('/')[-1]
+        # transforms 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg' into '20230220_WVU_OklahomaSt/frame_1.jpg'
+        img_name = os.path.join(*img_path.split('/')[-2:])
+
+        #TODO: img name will have to have game foler in name
+        #TODO: add print statements so we can track which pairs are being loaded, confirm they are
+        # the correct corresponding pairs
+        grid_name = img_name.replace("jpg", "npy")
+        grid_path = os.path.join(self.grids_path, grid_name)
+        # out seems like a kinda confusing naming convention, but imma just keep it cuz
+        # the original author used it everywhere
+        out = np.load(grid_path) / 255
         out = cv2.resize(out, (img.shape[1], img.shape[0]))
+
+        # sanity check
+        print(f'loaded (should correspond): img: {img_path}, grid: {grid_path}')
 
         if self.augment_data :
 
