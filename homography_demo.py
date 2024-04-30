@@ -165,7 +165,7 @@ def main(args):
                 print('homo could not be caluclated')
                 continue
 
-            H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=10)
+            H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=3)
             H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
 
             scale_factor = np.eye(3)
