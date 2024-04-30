@@ -1,5 +1,5 @@
 import numpy as np
-from sports_field_registration.utils.blobs_utils import get_boxes, keep_biggest_boxes, get_masks, get_local_maxima, get_masks_faster
+from .blobs_utils import get_boxes, keep_biggest_boxes, get_masks, get_local_maxima, get_masks_faster
 import cv2
 from scipy.stats import entropy
 
