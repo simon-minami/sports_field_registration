@@ -14,17 +14,17 @@ from dataloader import get_train_test_dataloaders, get_train_test_dataloaders_bb
 from model_deconv import vanilla_Unet2
 from model import deeper_Unet_like, vanilla_Unet
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     torch.cuda.empty_cache()
     # writer = SummaryWriter('runs/training')
 
     train_img_path = 'dataset/ncaa_bball/images'
-    out_path = 'dataset/ncaa_bball/grids'
+    train_grid_path = 'dataset/ncaa_bball/grids'
     # lines_nb = 11
-    lines_nb = 7 #NOTE: it was originally 11 (maybe for swim, we have to change to 7 for the soccer/bball?)
+    lines_nb = 7  # number of vertical markers in template grid (right now we have 15x7 grid)
 
-    model = vanilla_Unet2(final_depth=22).cuda()
+    # final depth needs to be 22 because we're training using 15x7 uniform grid representation of court (15+7=22)
+    model = vanilla_Unet2(final_depth=22).cuda()  # initialize model
 
     model_prefix = ''
     batch_size = 8
@@ -33,7 +33,7 @@ if __name__=='__main__':
 
     size = (256, 256)
     lr = 1e-3
-    epochs_nb = 100
+    epochs_nb = 100  # model will train for (epochs_nb - epochs_already_trained) epochs
 
     optimizer_function = Adam
     save_after_N_epochs = 5
@@ -43,8 +43,9 @@ if __name__=='__main__':
     stagnation = 0.95
 
     train_file = 'dataset/ncaa_bball/train.txt'
-    train_dataloader, test_dataloader = get_train_test_dataloaders_bball(train_img_path, out_path, size, train_file,
-                                                  batch_size=batch_size, train_test_ratio=0.8, lines_nb=lines_nb)
+    train_dataloader, test_dataloader = get_train_test_dataloaders_bball(train_img_path, train_grid_path, size, train_file,
+                                                                         batch_size=batch_size, train_test_ratio=0.8,
+                                                                         lines_nb=lines_nb)
     train_dataloader.temperature = initial_temperature
     test_dataloader.augment_data = False
     print('dataloader and model loaded')
@@ -60,14 +61,15 @@ if __name__=='__main__':
     mask_coef = 2
     markers_coef = 5
 
-    if not os.path.isdir(models_path) : os.mkdir(models_path)
+    if not os.path.isdir(models_path): os.mkdir(models_path)
 
     # if epochs_already_trained != 0:
     #     model.load_state_dict(load(models_path + model_prefix + 'best_model.pth'))
 
-    ## additional training on already trained model
+    # load pre-trained model
+    # if you've already trained a basketball model, then you can do additional training on that model
+    # if you haven't done any training yet, you can use the pre-trained soccer model that's in the repo
     model.load_state_dict(load(models_path + model_prefix + 'bball_unetv2_epoch45.pth'))
-
 
     display_counter = 0
     prev_best_loss = 1000
@@ -79,7 +81,7 @@ if __name__=='__main__':
         ### TRAIN PART ###
         total_epoch_loss = 0
         model.train()
-        for batch in train_dataloader :
+        for batch in train_dataloader:
             img = batch['img'].cuda()
             truth = batch['out'].cuda()
             truth_mask = batch['mask'].cuda()
@@ -105,18 +107,18 @@ if __name__=='__main__':
             optimizer.step()
 
             display_counter += 1
-            if display_counter == display_frequency :
+            if display_counter == display_frequency:
                 display_counter = 0
                 print(float(loss))
         print(f'debug: len train_dataloader: {len(train_dataloader)}')
         total_epoch_loss /= len(train_dataloader)
-        print('train :', total_epoch_loss, epoch+1)
+        print('train :', total_epoch_loss, epoch + 1)
 
         ### TEST PART ###
         model.eval()
         total_epoch_loss = 0
-        with torch.no_grad() :
-            for batch in test_dataloader :
+        with torch.no_grad():
+            for batch in test_dataloader:
                 img = batch['img'].cuda()
                 truth = batch['out'].cuda()
                 truth_mask = batch['mask'].cuda()
@@ -141,7 +143,7 @@ if __name__=='__main__':
             total_epoch_loss /= len(test_dataloader)
 
             print('test :', total_epoch_loss, epoch + 1)
-            if (total_epoch_loss < prev_best_loss) and (epoch > 90): # only want to save the later models to save space
+            if (total_epoch_loss < prev_best_loss) and (epoch > 90):  # only want to save the later models to save space
                 prev_best_loss = total_epoch_loss
                 save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
                 print('\t\tSaved at epoch ' + str(epoch + 1))
@@ -149,4 +151,3 @@ if __name__=='__main__':
         torch.cuda.empty_cache()
 
         scheduler.step(total_epoch_loss)
-

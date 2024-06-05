@@ -10,29 +10,26 @@ import matplotlib.pyplot as plt
 
 WHITE = (255, 255, 255)
 
-# not sure how important this is, but will make imgs same size as soccer just in case
-
-# TODO: NEED TO PUT BACK THE RESIZING, BECAUSE THE TEMPLATE USED IN TRAINING IS FIT TO THIS SIZE
 IMG_WIDTH = 1280
 IMG_HEIGHT = 720
 
 # Reading input video, setting up save directories
 # overarching is dataset/ncaa_bball
-# file structure is dataset/ncaa_bball/annotations or images/game name/.npy (annotations) or .png (images)
+# file structure is dataset/ncaa_bball/[annotations or images]/game name/[.npy (annotations) or .png (images)]
 input_video_path = "C:/Users/simon/OneDrive/Desktop/senior ds capstone/video_capstone/20240106_duke_notredame_h1.mp4"
 video_name = os.path.basename(input_video_path)
-# If you want to remove the file extension as well
 video_name_without_extension = os.path.splitext(video_name)[0]
 
-# video_directory = os.path.join('dataset', 'ncaa_bball', video_name_without_extension)
-img_directory = os.path.join('dataset', 'ncaa_bball', 'images',
-                             video_name_without_extension)  # images will be output as jpg here
-homography_directory = os.path.join('dataset', 'ncaa_bball', 'annotations',
-                                    video_name_without_extension)  # corresponding homography matrices will be output as npy here
+# images will be output as jpg here
+img_directory = os.path.join('dataset', 'ncaa_bball', 'images', video_name_without_extension)
+
+# corresponding homography matrices will be output as npy here
+homography_directory = os.path.join('dataset', 'ncaa_bball', 'annotations', video_name_without_extension)
+
 print(homography_directory)
 
 # update the train.txt file, which contains all the games that will be used in training
-# in our case were not gonna test the model so we automtically put every game in the train.txt
+# in our case we're not gonna test the model so we put every game in the train.txt
 train_file_path = os.path.join('dataset', 'ncaa_bball', 'train.txt')
 if os.path.exists(train_file_path):
     print(f'File {train_file_path} already exists')
@@ -72,13 +69,12 @@ cap = cv2.VideoCapture(input_video_path)
 fps = cap.get(cv2.CAP_PROP_FPS)
 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-# vid_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # get width of input video
-# vid_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # get height of input video
 
 court_width = 94  # length of bball court
 court_height = 50  # width of bball court
 
 skip_length = 3  # we read 1 frame every <skip_length> seconds
+# if you want to sample frames more frequently, you can reduce this value
 
 frame_skip = int(fps * skip_length)
 
@@ -149,7 +145,7 @@ court_diagram_points = {
 
 }
 
-### test whether the court diagram points are correct
+### Display the coordinates and their names on diagram for reference during annotation
 # Separate the x and y coordinates
 x_coords = [coord[0] for coord in court_diagram_points.values()]
 y_coords = [coord[1] for coord in court_diagram_points.values()]
@@ -169,6 +165,8 @@ plt.axis('equal')
 # Show the plot
 plt.show()
 
+
+# iterate through the input video frame by frame and annotate each frame
 ret_val, frame = cap.read()
 frame = cv2.resize(frame, (IMG_WIDTH, IMG_HEIGHT))
 cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
@@ -207,7 +205,7 @@ while ret_val:
         print("Source points:", src_points)
         print("Destination points:", dst_points)
 
-        # Compute homography here if needed
+        # Compute homography
         homography_matrix, _ = cv2.findHomography(np.array(src_points), np.array(dst_points), cv2.RANSAC, 10)
         print(homography_matrix)
         img_save_file = f'{img_directory}/frame_{current_frame}.jpg'  # jpg over png to save space

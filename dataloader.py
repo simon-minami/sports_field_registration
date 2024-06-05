@@ -299,7 +299,7 @@ def get_train_test_dataloaders(img_path, out_path, size, batch_size=32, train_te
 
 ### New Basketball dataaset based on original dataloader
 class BballDataset(Dataset):
-    def __init__(self, img_path, out_path, size, train_file, augment_data=True, lines_nb=5) :
+    def __init__(self, img_path, grids_path, size, train_file, augment_data=True, lines_nb=5) :
         self.transform = self.get_transform()
         self.augment_data = augment_data
         self.size = size
@@ -307,10 +307,8 @@ class BballDataset(Dataset):
         self.temperature = 1
 
 
-        # in original img path is frames/train_all
-        # images: start with dataset/ncaa_bball/images
-        # out path is datamangement/grids/
-        # self.img_paths should be list of img file paths
+        # img_path will be 'dataset/ncaa_bball/images'
+        # self.img_paths will be list of img file paths
 
         # Open the file in read mode ('r')
         # train_file contains the names of all the games to be loaded (ex: 20230220_WVU_OklahomaSt)
@@ -321,48 +319,15 @@ class BballDataset(Dataset):
             for line in file:
                 game_folder = line.strip()  # need line.strip() to get rid of \n
                 imgs = os.listdir(os.path.join(img_path, game_folder))  # load all the imgs in this game folder
-                # annotations = os.listdir(os.path.join(out_path, line))  # load all the homo matrices in this game folder
-
                 img_paths.extend([os.path.join(img_path, game_folder, img) for img in imgs])
-                # yes_out.extend([os.path.join(out_path, line, M) for M in annotations])
 
         self.img_paths = sorted(img_paths)
-        # NOTE: img_paths is list of 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg'
-        # print(f'loaded images: {self.img_paths}')
+        # NOTE: img_paths is list of img paths like 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg'
 
-        # NOTE: honestly, we don't even need the dictionary for the npy files
-        #  as long as we have outpath, we can just append 20230220_WVU_OklahomaSt/frame_1.jpg to the outpath
 
         # location of all the training grids, will be dataset/ncaa_bball/grids
-        self.grids_path = out_path
-        # img_paths = os.listdir(img_path)
-        # img_paths = [os.path.join(img_path, f) for f in img_paths]
-        # img_paths.sort()
-        # img_paths.sort(key=len)
-        # self.img_paths = img_paths
-
-        # TODO: we'll have to change this around to handle multple game folders
-        # out path is gonna be 'dataset/ncaa_bball/grids'
-        # yes_out = sorted(os.listdir(out_path))
-
-        #TODO: dic keys will have to have the game folder in the name
-        # yes_out.sort()
-        # yes_out.sort(key=len)
-        # right now key value pair: 'frame_1.npy': 'data_management/grids/frame_1.npy'
-        # since we have possiblity of multiple frame_1.npy, we need to have game folder name
-        # we want: key value: 2023oregon/frame1.npy, dataset/ncaa_bball/grids/frame1.npy
-
-
-
-        # dico = {}
-        # for f in yes_out :
-        #     dico[f] = os.path.join(out_path, f)
-        # self.yes_out = dico
-        # print(f'loaded outputs: {self.yes_out}')
-
-
+        self.grids_path = grids_path
         self.len = len(self.img_paths)
-
         self.lines_nb = lines_nb
 
     def __len__(self) :
@@ -372,17 +337,15 @@ class BballDataset(Dataset):
         img_path = self.img_paths[idx]
         img = io.imread(img_path)
 
-        # img_name = img_path.split('/')[-1]
         # transforms 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg' into '20230220_WVU_OklahomaSt/frame_1.jpg'
+        # load img and corresponding grid
         img_name = os.path.join(*img_path.split('/')[-2:])
-
-        #TODO: img name will have to have game foler in name
-        #TODO: add print statements so we can track which pairs are being loaded, confirm they are
-        # the correct corresponding pairs
         grid_name = img_name.replace("jpg", "npy")
         grid_path = os.path.join(self.grids_path, grid_name)
-        # out seems like a kinda confusing naming convention, but imma just keep it cuz
+
+        # "out" seems like a kinda confusing naming convention, but imma just keep it cuz
         # the original author used it everywhere
+        # for understanding, out is basically the uniform grid version of the original court img
         out = np.load(grid_path) / 255
         out = cv2.resize(out, (img.shape[1], img.shape[0]))
 
@@ -616,9 +579,9 @@ class BballDataset(Dataset):
         return out
 
 ### New version for bball
-def get_train_test_dataloaders_bball(img_path, out_path, size, train_file, batch_size=2, train_test_ratio=0.8,
+def get_train_test_dataloaders_bball(img_path, grids_path, size, train_file, batch_size=2, train_test_ratio=0.8,
                                augment_data=True, shuffle=True, lines_nb=11):
-    dataset = BballDataset(img_path, out_path, size, train_file, augment_data, lines_nb)
+    dataset = BballDataset(img_path, grids_path, size, train_file, augment_data, lines_nb)
     if train_test_ratio != 1 :
         train_size = int(train_test_ratio * len(dataset))
         test_size = len(dataset) - train_size

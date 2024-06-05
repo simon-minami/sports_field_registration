@@ -25,7 +25,6 @@ if __name__ == '__main__' :
 
     lines = np.linspace(0, field_width, 7)
 
-    # img_size = (256, 256)
     img_size = (720, 1280)
     # img_size = (1280, 720) WRONG
 
@@ -55,6 +54,6 @@ if __name__ == '__main__' :
     plt.imshow(np.max(data_np, axis=0))
     plt.show()
     print(f'template: {data_np.shape}')
-    np.save(data_path_np, data_np)
+    # np.save(data_path_np, data_np)
 
 

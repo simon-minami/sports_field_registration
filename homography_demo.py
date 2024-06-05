@@ -14,7 +14,7 @@ from model_deconv import vanilla_Unet2
 import torch
 from torchvision import transforms
 from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements, get_homography_from_points
-
+from homography_utils import get_homography_matrix
 
 def make_parser():
     parser = argparse.ArgumentParser("Jacquelin et al Homography Demo")
@@ -23,48 +23,42 @@ def make_parser():
     parser.add_argument("--output_path", default=None, type=str, help="output video path")
     return parser
 
-
-def preprocess(img, size):
-    '''
-    apply necessary preprocess to img before inputing into model
-    also returns resized version of original
-    '''
-    img_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]),
-    ])
-    # Convert from BGR to RGB
-    #NOTE: cv2 default reads in BGR format, need to convert to RGB for model to work (idk really why, just it that way)
-    rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    resized_img = cv2.resize(rgb_frame, size)
-
-    tensor_img = img_transform(resized_img)
-    # print(f'shape before .view {tensor_img.size()}')
-    tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
-    # print(f'shape after .view {tensor_img.size()}')
-
-    tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
-    # print(f'shape after adding batch dim {tensor_img.size()}')
-    return resized_img, tensor_img
-
-def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
-    if batched : index_shift = 1
-    else : index_shift = 0
-    std = torch.tensor([0.229, 0.224, 0.225])
-    mean = torch.tensor([0.485, 0.456, 0.406])
-    if inv_trans :
-        for t, m, s in zip(out, mean, std):
-            t.mul_(s).add_(m)
-    out = out.cpu().numpy()
-    if to_uint8 :
-        out *= 256
-        out = out.astype(np.uint8)
-    out = np.swapaxes(out, index_shift + 0, index_shift + 2)
-    out = np.swapaxes(out, index_shift + 0, index_shift + 1)
-    return out
+#
+# def preprocess(img, size):
+#     '''
+#     apply necessary preprocess to img before inputing into model
+#     also returns resized version of original
+#     '''
+#     img_transform = transforms.Compose([
+#         transforms.ToTensor(),
+#         transforms.Normalize(
+#             mean=[0.485, 0.456, 0.406],
+#             std=[0.229, 0.224, 0.225]),
+#     ])
+#     # Convert from BGR to RGB
+#     # cv2 default reads in BGR format, need to convert to RGB for model to work (idk really why, just it that way)
+#     rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     resized_img = cv2.resize(rgb_frame, size)
+#     tensor_img = img_transform(resized_img)
+#     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
+#     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
+#     return resized_img, tensor_img
+#
+# def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True) :
+#     if batched : index_shift = 1
+#     else : index_shift = 0
+#     std = torch.tensor([0.229, 0.224, 0.225])
+#     mean = torch.tensor([0.485, 0.456, 0.406])
+#     if inv_trans :
+#         for t, m, s in zip(out, mean, std):
+#             t.mul_(s).add_(m)
+#     out = out.cpu().numpy()
+#     if to_uint8 :
+#         out *= 256
+#         out = out.astype(np.uint8)
+#     out = np.swapaxes(out, index_shift + 0, index_shift + 2)
+#     out = np.swapaxes(out, index_shift + 0, index_shift + 1)
+#     return out
 
 def draw_court_lines(frame, H_court_to_video):
     '''
@@ -130,60 +124,63 @@ def main(args):
     model = model.cuda()
     model.eval()
 
-    with torch.no_grad():
+    # with torch.no_grad():
+    ret_val, frame = cap.read()
+    H_video_to_court = get_homography_matrix(model, frame, (width, height))
+    H_court_to_video = np.linalg.inv(H_video_to_court)
+
+    while ret_val:
+
+        # # apply necessary preprocessing to frame
+        # # load and preprocess image following steps in video_display_dataloader.py
+        # resized_img, tensor_img = preprocess(frame, size)
+        # batch_out = model(tensor_img)
+        # # print(f'model output before {batch_out.size()}')
+        # batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
+        # # print(f'model output after converting back to image {batch_out.shape}')
+        #
+        # #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
+        # resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
+        #                                                                   write_on_image=False,
+        #                                                                   lines_nb=len(lines_y),
+        #                                                                   markers_x=markers_x, lines_y=lines_y)
+        #
+        # # cv2.imwrite('images/debug_original.jpg', rgb_frame)
+        # # cv2.imwrite('images/debug_resized.jpg', resized_img)
+        # # H = get_homography_from_points(src_pts, dst_pts, size,
+        # #                                field_length=field_length, field_width=field_width)
+        # # warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
+        # # cv2.imwrite('images/debug_warped.jpg', warped_img)
+        #
+        #
+        #
+        #
+        # src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
+        # if len(src_pts) < 4:
+        #     vid_writer.write(frame)
+        #     ret_val, frame = cap.read()
+        #     print('homo could not be caluclated')
+        #     continue
+        #
+        # H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=3)
+        # H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
+        #
+        # scale_factor = np.eye(3)
+        # scale_factor[0, 0] = width / size[0]
+        # scale_factor[1, 1] = height / size[1]
+        # H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
+        frame = draw_court_lines(frame, H_court_to_video)
+
+
+        vid_writer.write(frame)
+
+        # get current frame
+        frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
+        if frame_id % 120 == 0:
+            print(f'processed {frame_id} frames')
+            cv2.imwrite(f'images/homography_frame{frame_id}.jpg', frame)
+
         ret_val, frame = cap.read()
-        while ret_val:
-
-            # apply necessary preprocessing to frame
-            # load and preprocess image following steps in video_display_dataloader.py
-            resized_img, tensor_img = preprocess(frame, size)
-            batch_out = model(tensor_img)
-            # print(f'model output before {batch_out.size()}')
-            batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
-            # print(f'model output after converting back to image {batch_out.shape}')
-
-            #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
-            resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
-                                                                              write_on_image=False,
-                                                                              lines_nb=len(lines_y),
-                                                                              markers_x=markers_x, lines_y=lines_y)
-
-            # cv2.imwrite('images/debug_original.jpg', rgb_frame)
-            # cv2.imwrite('images/debug_resized.jpg', resized_img)
-            # H = get_homography_from_points(src_pts, dst_pts, size,
-            #                                field_length=field_length, field_width=field_width)
-            # warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
-            # cv2.imwrite('images/debug_warped.jpg', warped_img)
-
-
-
-
-            src_pts, dst_pts = conflicts_managements(src_pts, dst_pts, entropies)
-            if len(src_pts) < 4:
-                vid_writer.write(frame)
-                ret_val, frame = cap.read()
-                print('homo could not be caluclated')
-                continue
-
-            H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=3)
-            H_court_to_video = np.linalg.inv(H_video_to_court).astype(float)
-
-            scale_factor = np.eye(3)
-            scale_factor[0, 0] = width / size[0]
-            scale_factor[1, 1] = height / size[1]
-            H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
-            frame = draw_court_lines(frame, H_court_to_video_scaled)
-
-
-            vid_writer.write(frame)
-
-            # get current frame
-            frame_id = cap.get(cv2.CAP_PROP_POS_FRAMES)
-            if frame_id % 120 == 0:
-                print(f'processed {frame_id} frames')
-                cv2.imwrite(f'images/homography_frame{frame_id}.jpg', frame)
-
-            ret_val, frame = cap.read()
 
 
 if __name__ == "__main__":

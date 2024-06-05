@@ -85,6 +85,8 @@ def main():
                     # scale_factor[0, 0] = out_size[0] / 94
                     # scale_factor[1, 1] = out_size[1] / 50
                     # h = scale_factor @ h
+
+                    # h maps from video to 2D court, so we inverse to get 2D court -> video
                     h_back = np.linalg.inv(h)
 
                     result = warpPerspective(template, h_back, out_size)

@@ -8,27 +8,26 @@ from torchvision import transforms
 from sports_field_registration.utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
 
 
-def getHomographyMatrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
+def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
     '''
-    model: should be loaded and in eval mode
+    model: should be loaded and in eval mode (should be vanilla_Unet2)
     video_size: input video dimensions (w, h)
     size: constant image resize used by homography model (don't change)
+    returns the video to court homography matrix
     '''
+    # using 15x7 uniform grid representation of court
     markers_x = np.linspace(0, field_length, 15)
     lines_y = np.linspace(0, field_width, 7)
     width = video_size[0]
     height = video_size[1]
 
     with torch.no_grad():
-
         resized_img, tensor_img = preprocess(img, size)
-        batch_out = model(tensor_img)
-        # print(f'model output before {batch_out.size()}')
-        batch_out = tensor_to_image(batch_out, inv_trans=False, batched=True, to_uint8=False)
-        # print(f'model output after converting back to image {batch_out.shape}')
+        grid_output = model(tensor_img)
+        grid_output = tensor_to_image(grid_output, inv_trans=False, batched=True, to_uint8=False)
 
-    #  we don't need the batch dimension in batch_out when we pass into get_faster_landmarks
-    resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, batch_out[0], threshold,
+    #  we don't need the batch dimension in grid_output when we pass into get_faster_landmarks
+    resized_img, src_pts, dst_pts, entropies = get_faster_landmarks_positions(resized_img, grid_output[0], threshold,
                                                                               write_on_image=False,
                                                                               lines_nb=len(lines_y),
                                                                               markers_x=markers_x, lines_y=lines_y)
@@ -40,16 +39,15 @@ def getHomographyMatrix(model, img, video_size, size=(256, 256), field_length=94
 
     H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=3)
 
-    # NOTE: H_video_to_court maps from 256x256 video to court diagram \
+    # H_video_to_court maps from 256x256 video to court diagram
     # we want to it to go from video_size[0] x video_size[1] to court diagram
-    # NOTE: this works, but its redunant SHOULD BE A WAY TO DO WITHOUT ALL THE INVERSING
-    # court to video is court to 256x256
+    # current code works, but its redundant (TODO: should be a way to do this without all the inverting)
     H_court_to_video = np.linalg.inv(H_video_to_court)
     scale_factor = np.eye(3)
     scale_factor[0, 0] = width / size[0]
     scale_factor[1, 1] = height / size[0]
     H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
-    # now court to video should be court to width x height
+    # now H_court_to_video maps from court to video width x height
     # invert to get width x height to court
     return np.linalg.inv(H_court_to_video_scaled)
 
@@ -68,18 +66,12 @@ def preprocess(img, size):
             std=[0.229, 0.224, 0.225]),
     ])
     # Convert from BGR to RGB
-    # NOTE: cv2 default reads in BGR format, need to convert to RGB for model to work (idk really why, just it that way)
+    # cv2 default reads in BGR format, need to convert to RGB for model to work (idk really why, just it that way)
     rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
     resized_img = cv2.resize(rgb_frame, size)
-
     tensor_img = img_transform(resized_img)
-    # print(f'shape before .view {tensor_img.size()}')
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
-    # print(f'shape after .view {tensor_img.size()}')
-
     tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
-    # print(f'shape after adding batch dim {tensor_img.size()}')
     return resized_img, tensor_img
 
 
@@ -102,9 +94,9 @@ def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True):
     return out
 
 
-def getTrackingData(homo_matrix, tlwhs, ball_bbox, obj_ids=None, frame_id=0):
+def get_tracking_data(homo_matrix, tlwhs, ball_bbox, obj_ids=None, frame_id=0):
     '''
-    applys homographic transformation and returns formated tracking data for given frame
+    applies homographic transformation and returns formatted tracking data for given frame
     Args:
         calib: Calib object returned by estimate calib
         tlwhs: player bounding boxes in form list of [x1, y1, w, h]
@@ -134,10 +126,8 @@ def getTrackingData(homo_matrix, tlwhs, ball_bbox, obj_ids=None, frame_id=0):
     frame_ids = np.full((num_tracks, 1), frame_id)  # Example: Column of ones
 
     pts = video_coords.reshape(-1, 1, 2)  # need to reshape for transformation
-    # print(f'dubug: number of tracks: {num_tracks}, homo_matrix: {homo_matrix}')
     transformed_coords = cv2.perspectiveTransform(pts, homo_matrix).reshape(num_tracks, 2)
 
     # Concatenate the new columns with the original array
     tracking_data = np.hstack((frame_ids, player_ids, transformed_coords))
-    # print(f'tracking_data: {tracking_data.shape}')
     return tracking_data
