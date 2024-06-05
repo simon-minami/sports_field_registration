@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import torch
 from torchvision import transforms
-from sports_field_registration.utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
+from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
 
 
 def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
