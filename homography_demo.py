@@ -16,12 +16,14 @@ from torchvision import transforms
 from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements, get_homography_from_points
 from homography_utils import get_homography_matrix
 
+
 def make_parser():
     parser = argparse.ArgumentParser("Jacquelin et al Homography Demo")
     parser.add_argument("--input_path", default=None, type=str, help="input video path")
     parser.add_argument("--model_path", default=None, type=str, help="homography model path (.pth file)")
     parser.add_argument("--output_path", default=None, type=str, help="output video path")
     return parser
+
 
 #
 # def preprocess(img, size):
@@ -126,10 +128,10 @@ def main(args):
 
     # with torch.no_grad():
     ret_val, frame = cap.read()
-    H_video_to_court = get_homography_matrix(model, frame, (width, height))
-    H_court_to_video = np.linalg.inv(H_video_to_court)
 
     while ret_val:
+        H_video_to_court = get_homography_matrix(model, frame, (width, height))
+        H_court_to_video = np.linalg.inv(H_video_to_court)
 
         # # apply necessary preprocessing to frame
         # # load and preprocess image following steps in video_display_dataloader.py
@@ -170,7 +172,6 @@ def main(args):
         # scale_factor[1, 1] = height / size[1]
         # H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
         frame = draw_court_lines(frame, H_court_to_video)
-
 
         vid_writer.write(frame)
 
