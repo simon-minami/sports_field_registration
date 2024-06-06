@@ -10,10 +10,13 @@ from utils.grid_utils import get_faster_landmarks_positions, conflicts_managemen
 
 def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
     '''
-    model: should be loaded and in eval mode (should be vanilla_Unet2)
-    video_size: input video dimensions (w, h)
-    size: constant image resize used by homography model (don't change)
-    returns the video to court homography matrix
+    Given image of court, predicts homogrpahy matrix mapping from video to 2D court space
+    Args:
+        model (vanilla_Unet2_: should be loaded and in eval mode (should be vanilla_Unet2)
+        video_size (tuple): input video dimensions (w, h)
+        size (tuple): constant image resize used by homography model (w, h) (don't change)
+    Returns:
+         numpy matrix: the video to court homography matrix
     '''
     # using 15x7 uniform grid representation of court
     markers_x = np.linspace(0, field_length, 15)
