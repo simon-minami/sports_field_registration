@@ -94,27 +94,26 @@ def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True):
     return out
 
 
-def get_tracking_data(homo_matrix, tlwhs, ball_bbox, obj_ids=None, frame_id=0):
+def get_tracking_data(homo_matrix, list_top_left_width_height, ball_bbox, obj_ids=None, frame_id=0):
     '''
     applies homographic transformation and returns formatted tracking data for given frame
     Args:
-        calib: Calib object returned by estimate calib
-        tlwhs: player bounding boxes in form list of [x1, y1, w, h]
-        ball_bbox: ball bounding boxes in form [xmin, ymin, xmax, ymax, conf, class id]
+        list_top_left_width_height: player bounding boxes in form list of [x1, y1, w, h]
+        ball_bbox: ball bounding box in form [xmin, ymin, xmax, ymax, conf, class id]
         obj_ids: player ids
         frame_id:
 
     Returns: array of new tracking data
 
     '''
-    # take tlwhs which is list of BBs in form [x1, y1, w, h] and turn it to player coordinate
+    # take list_top_left_width_height which is list of BBs in form [x1, y1, w, h] and turn it to player coordinate
     # should have shape (num tracks, 2)
-    num_tracks = len(tlwhs)
+    num_tracks = len(list_top_left_width_height)
 
     # create player id column
     player_ids = np.array(obj_ids).reshape(num_tracks, 1)  # Example: Column of zeros
 
-    video_coords = np.array(list(map(lambda bb: (bb[0] + bb[2] / 2, bb[1] + bb[3]), tlwhs)))
+    video_coords = np.array(list(map(lambda bb: (bb[0] + bb[2] / 2, bb[1] + bb[3]), list_top_left_width_height)))
     # do same thing for ball coordinate, which is in different format
     if ball_bbox is not None:  # will be none if number of detections is 0 or best detection didn't meet threshold
         ball_coords = np.array([(ball_bbox[0] + (ball_bbox[2] - ball_bbox[0]) / 2, ball_bbox[3])])
