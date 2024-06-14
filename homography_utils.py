@@ -5,10 +5,6 @@ import cv2
 import numpy as np
 import torch
 from torchvision import transforms
-import sys
-
-for path in sys.path:
-    print(path)
 from sports_field_registration.utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
 
 
