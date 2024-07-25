@@ -117,7 +117,7 @@ if __name__ == '__main__':
             if display_counter == display_frequency:
                 display_counter = 0
                 print(float(loss))
-        print(f'debug: len train_dataloader: {len(train_dataloader)}')
+        # print(f'debug: len train_dataloader: {len(train_dataloader)}')
         total_epoch_loss /= len(train_dataloader)
         print('train :', total_epoch_loss, epoch)
         writer.add_scalar("Loss/train", total_epoch_loss, epoch)  # record loss
@@ -147,7 +147,7 @@ if __name__ == '__main__':
                        mask_loss * mask_coef
 
                 total_epoch_loss += float(loss)
-            print(f'debug: len test_dataloader: {len(test_dataloader)}')
+            # print(f'debug: len test_dataloader: {len(test_dataloader)}')
             total_epoch_loss /= len(test_dataloader)
             writer.add_scalar("Loss/test", total_epoch_loss, epoch)  # record test loss
 
@@ -157,13 +157,13 @@ if __name__ == '__main__':
                 # save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
                 save(model.state_dict(), os.path.join(models_path, best_model_path))
                 print('\t\tSaved best model at epoch ' + str(epoch))
-            print()
+            # print()
         torch.cuda.empty_cache()
         scheduler.step(total_epoch_loss)
 
     # saving final model
     save(model.state_dict(), os.path.join(models_path, final_model_path))
-    print(f'Saved final model ')
+    print(f'Saved final model')
     writer.flush()
     writer.close()
 
