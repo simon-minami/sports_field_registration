@@ -9,14 +9,18 @@ from torch.optim import Adam, SGD
 from torch.optim.lr_scheduler import ReduceLROnPlateau, MultiStepLR
 
 import os
-from dataloader import get_train_test_dataloaders, get_train_test_dataloaders_bball
-
+from dataloader import get_train_test_dataloaders_bball
+from torch.utils.tensorboard import SummaryWriter
 from model_deconv import vanilla_Unet2
-from model import deeper_Unet_like, vanilla_Unet
+from tqdm.auto import tqdm
 
+# TODO: add cmd line parser so you can specify things like epochs, etc
 if __name__ == '__main__':
+
     torch.cuda.empty_cache()
-    # writer = SummaryWriter('runs/training')
+    # device-agnostic, in practice probably wanna train on gpu
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    writer = SummaryWriter()  # default location is ./runs
 
     train_img_path = 'dataset/ncaa_bball/images'
     train_grid_path = 'dataset/ncaa_bball/grids'
@@ -24,16 +28,18 @@ if __name__ == '__main__':
     lines_nb = 7  # number of vertical markers in template grid (right now we have 15x7 grid)
 
     # final depth needs to be 22 because we're training using 15x7 uniform grid representation of court (15+7=22)
-    model = vanilla_Unet2(final_depth=22).cuda()  # initialize model
+    model = vanilla_Unet2(final_depth=22).to(device)  # initialize model
 
     model_prefix = ''
+    best_model_path = 'best_bball.pth'
+    final_model_path = 'final_bball.pth'
     batch_size = 8
     models_path = './models/'
-    epochs_already_trained = 45
+    epochs_already_trained = 0
 
     size = (256, 256)
     lr = 1e-3
-    epochs_nb = 100  # model will train for (epochs_nb - epochs_already_trained) epochs
+    epochs_nb = 5  # model will train for (epochs_nb - epochs_already_trained) epochs
 
     optimizer_function = Adam
     save_after_N_epochs = 5
@@ -69,12 +75,13 @@ if __name__ == '__main__':
     # load pre-trained model
     # if you've already trained a basketball model, then you can do additional training on that model
     # if you haven't done any training yet, you can use the pre-trained soccer model that's in the repo
-    model.load_state_dict(load(models_path + model_prefix + 'bball_unetv2_epoch45.pth'))
+    soccer_model_path = 'soccer model.pth'
+    model.load_state_dict(load(os.path.join(models_path, soccer_model_path)))
 
     display_counter = 0
     prev_best_loss = 1000
 
-    for epoch in range(epochs_already_trained, epochs_already_trained + epochs_nb):
+    for epoch in tqdm(range(epochs_already_trained, epochs_already_trained + epochs_nb)):
 
         train_dataloader.temperature *= stagnation
 
@@ -82,9 +89,9 @@ if __name__ == '__main__':
         total_epoch_loss = 0
         model.train()
         for batch in train_dataloader:
-            img = batch['img'].cuda()
-            truth = batch['out'].cuda()
-            truth_mask = batch['mask'].cuda()
+            img = batch['img'].to(device)
+            truth = batch['out'].to(device)
+            truth_mask = batch['mask'].to(device)
 
             out = model.forward(img)
 
@@ -112,16 +119,17 @@ if __name__ == '__main__':
                 print(float(loss))
         print(f'debug: len train_dataloader: {len(train_dataloader)}')
         total_epoch_loss /= len(train_dataloader)
-        print('train :', total_epoch_loss, epoch + 1)
+        print('train :', total_epoch_loss, epoch)
+        writer.add_scalar("Loss/train", total_epoch_loss, epoch)  # record loss
 
         ### TEST PART ###
         model.eval()
         total_epoch_loss = 0
-        with torch.no_grad():
+        with torch.inference_mode():
             for batch in test_dataloader:
-                img = batch['img'].cuda()
-                truth = batch['out'].cuda()
-                truth_mask = batch['mask'].cuda()
+                img = batch['img'].to(device)
+                truth = batch['out'].to(device)
+                truth_mask = batch['mask'].to(device)
 
                 out = model.forward(img)
 
@@ -141,13 +149,22 @@ if __name__ == '__main__':
                 total_epoch_loss += float(loss)
             print(f'debug: len test_dataloader: {len(test_dataloader)}')
             total_epoch_loss /= len(test_dataloader)
+            writer.add_scalar("Loss/test", total_epoch_loss, epoch)  # record test loss
 
-            print('test :', total_epoch_loss, epoch + 1)
-            if (total_epoch_loss < prev_best_loss) and (epoch > 90):  # only want to save the later models to save space
+            print('test :', total_epoch_loss, epoch)
+            if (total_epoch_loss < prev_best_loss):  # only want to save the later models to save space
                 prev_best_loss = total_epoch_loss
-                save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
-                print('\t\tSaved at epoch ' + str(epoch + 1))
+                # save(model.state_dict(), models_path + model_prefix + f'bball_unetv2_epoch{epoch}.pth')
+                save(model.state_dict(), os.path.join(models_path, best_model_path))
+                print('\t\tSaved best model at epoch ' + str(epoch))
             print()
         torch.cuda.empty_cache()
-
         scheduler.step(total_epoch_loss)
+
+    # saving final model
+    save(model.state_dict(), os.path.join(models_path, final_model_path))
+    print(f'Saved final model ')
+    writer.flush()
+    writer.close()
+
+    # calculating eval metrics for best and final model
