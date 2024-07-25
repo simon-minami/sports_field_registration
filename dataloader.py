@@ -350,7 +350,7 @@ class BballDataset(Dataset):
         out = cv2.resize(out, (img.shape[1], img.shape[0]))
 
         # sanity check
-        print(f'loaded (should correspond): img: {img_path}, grid: {grid_path}')
+        # print(f'loaded (should correspond): img: {img_path}, grid: {grid_path}')
 
         if self.augment_data :
 
