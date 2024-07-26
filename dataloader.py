@@ -399,7 +399,8 @@ class BballDataset(Dataset):
         out = self.adapt_to_cross_correlation(out)
         out = self.to_tensor(out)
 
-        return {'img': img, 'out': out, 'mask': mask}
+        return {'img': img, 'out': out, 'mask': mask, 'H_name': grid_name}
+        # we need to access the ground truth H when we do IOU evalulation after training
 
     def salt_pepper(self, img):
         s_vs_p = 0.5
