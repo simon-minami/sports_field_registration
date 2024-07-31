@@ -167,4 +167,12 @@ if __name__ == '__main__':
     writer.flush()
     writer.close()
 
+    # TODO: does tensorboard automatically do time? if not lets record that
+    # TODO: balance train test sets in terms of proportion of imgs from each game  \
+    #  (we don't want all the imgs from one game to be in the train set, or in the test set)
     # calculating eval metrics for best and final model
+    # for now, we save train test loss in tensorboard thing
+    # for now, get the model to print the iou metrics correctly
+    # ask nick about where to save the train/test loss, and the iou stuff
+    #TODO: need to add random_state to get_train_testdataloder for reprodcibiity, and consitency when comparing different models
+    # we want model a and model b to be evaluated on the same train and test sets

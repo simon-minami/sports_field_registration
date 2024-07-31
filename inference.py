@@ -50,12 +50,13 @@ def tensor_to_image(out, inv_trans=True, batched=False, to_uint8=True):
 
 
 if __name__ == '__main__':
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     size = (256, 256)
 
     threshold = 0.75
 
-    epochs = 100
 
     save_projection = True
     # save_projection = False
@@ -69,10 +70,10 @@ if __name__ == '__main__':
 
     batch_size = 64
 
-    model_path = 'models/bball_unetv2_epoch45.pth'
+    model_path = 'models/bball_unetv2_epoch96.pth'
 
-    model.load_state_dict(load(model_path))
-    model = model.cuda()
+    model.load_state_dict(load(model_path, map_location=device))
+    model = model.to(device)
     model.eval()
 
     # load and preprocess image following steps in video_display_dataloader.py
@@ -83,10 +84,11 @@ if __name__ == '__main__':
             std=[0.229, 0.224, 0.225]),
     ])
 
-    # img_path = 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_2701.jpg'
-    img_path = 'images/unseen_test2.png'
+    img_path = 'dataset/ncaa_bball/images/20230217_washingtonst_oregon/frame_1441.jpg'
+    # img_path = 'images/unseen_test.png'
 
     img = io.imread(img_path)
+    print(f'original img shape: {img.shape}')
     # img = self.zoom_out(img)
     resized_img = cv2.resize(img, size)
 
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
     print(f'shape after .view {tensor_img.size()}')
 
-    tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
+    tensor_img = tensor_img.unsqueeze(0).to(device)  # add batch dimension and send to gpu
     print(f'shape after adding batch dim {tensor_img.size()}')
 
     with no_grad():
@@ -114,6 +116,18 @@ if __name__ == '__main__':
         H = get_homography_from_points(src_pts, dst_pts, size,
                                        field_length=field_length, field_width=field_width)
         warped_img = cv2.warpPerspective(resized_img, H.astype(float), size)
+
+        # Scale the homography matrix to map from video_size to court diagram
+        H_court_to_video = np.linalg.inv(H)
+        scale_factor = np.eye(3)
+        scale_factor[0, 0] = 1280 / 256
+        scale_factor[1, 1] = 720 / 256
+        H_adjusted = np.matmul(np.matmul(scale_factor, H), np.linalg.inv(scale_factor))
+        # cv2.imwrite('images/orig_img.jpg', img)
+        cv2.imwrite('images/warp_scaled.jpg', cv2.warpPerspective(img, H_adjusted, (1280, 720)))
+
+
+
 
 
         draw_img = copy.copy(resized_img)

@@ -6,7 +6,10 @@ import numpy as np
 import torch
 from torchvision import transforms
 from sports_field_registration.utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
-
+from cv2 import warpPerspective
+import matplotlib.pyplot as plt
+import shapely
+from shapely.geometry import Polygon
 
 def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
     '''
@@ -131,3 +134,112 @@ def get_tracking_data(homo_matrix, list_top_left_width_height, ball_bbox, obj_id
     # Concatenate the new columns with the original array
     tracking_data = np.hstack((frame_ids, player_ids, transformed_coords))
     return tracking_data
+
+
+
+#  IOU calculations
+# H_path = '/content/drive/MyDrive/repos/sports_field_registration/dataset/ncaa_bball/annotations'
+# img_path = '/content/drive/MyDrive/repos/sports_field_registration/dataset/ncaa_bball/images'
+def calc_iou_part(img, H_true, H_pred):
+    '''
+    Given img, H_true, H_pred calculates the iou part
+    NEED to keep in mind dimensions
+    H_true maps from by default H_true maps from 1280x720 to 1280x720
+    img is from original data set so its 1280x720
+    '''
+    # assume img is 1280x720, H_true maps from 1280x720 to 1280x720
+    true_projection = warpPerspective(img, H_true, (1280, 720))
+    # np.unique(true_projection[0, :, :])
+    pred_projection = warpPerspective(img, H_pred, (1280, 720))
+
+    # projections are original 3 color channels, we want to compress because
+    # we only care about where the court was and wasn't projected
+    truth_mask = np.where(true_projection.max(axis=2) > 0, 1, 0)
+    pred_mask = np.where(pred_projection.max(axis=2) > 0, 1, 0)
+
+    # now, calculate the IOU part
+    # boolean comparison creates same size array, true if condition true, false otherwise
+    intersection = np.sum((truth_mask==1) & (pred_mask==1))
+    union = np.sum((truth_mask==1) | (pred_mask==1))
+    iou_part = intersection/union
+
+    # optional visualization stuff
+    # fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    # axs[0].imshow(true_projection)
+    # axs[0].set_title('ground truth projection')
+    # axs[1].imshow(pred_projection)
+    # axs[1].set_title(f'pred projection, iou: {iou_part}')
+
+
+    return iou_part
+def calc_iou_whole(H_true, H_pred):
+    '''
+    Given H_true, H_pred calculates the iou whole
+    unlike calc_iou_part we don't need img because we're not projecting the img, just the corners
+    NEED to keep in mind dimensions
+    H_true maps from by default H_true maps from 1280x720 to 1280x720
+    img is from original data set so its 1280x720
+
+    '''
+    corners_truth = np.array([(0, 0), (1280, 0), (1280, 720), (0, 720)]).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
+    corners_in_video = cv2.perspectiveTransform(corners, np.linalg.inv(H_true))
+
+    corners_pred = cv2.perspectiveTransform(corners_in_video, H_pred)
+
+
+
+    # now we can calculate the iou whole
+    court_truth = Polygon(corners_truth.squeeze())
+    court_pred = Polygon(corners_pred.squeeze())
+    intersection = shapely.intersection(court_truth, court_pred).area
+    union = shapely.union(court_truth, court_pred).area
+    iou_whole = intersection / union
+
+    # optional visualization stuff
+    # fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+    # ax.set_xlim([-200, 1480])
+    # ax.set_ylim([-200, 920])
+    #
+    # corners_truth_closed = np.concatenate([corners_truth.squeeze(), corners_truth[0, :]])
+    # print(corners_truth.shape, corners_truth_closed.shape)
+    #
+    # corners_pred_closed = np.concatenate([corners_pred.squeeze(), corners_pred[0, :]])
+    # ax.plot(corners_truth_closed[:, 0], corners_truth_closed[:, 1], color='blue')
+    # ax.plot(corners_pred_closed[:, 0], corners_pred_closed[:, 1], color='red')
+    # ax.set_title(f'blue truth, red pred, iou_whole: {iou_whole}')
+    # plt.show()
+    return iou_whole
+
+def get_iou_part_and_whole(model, test_dataloader, H_path):
+    '''
+    gets the iou part and whole on test dataset
+    iou_part:
+    1. get truth and pred projections
+    2. create truth and pred binary masks
+    3. do matrix summing etc to calc iou
+
+    iou_whole:
+    1. get ground truth corners (assume 1280x720)
+    2. use H_true inv to get ground truth video corners
+    3. use H_pred to get predicted corners
+    4. use Polygons to find intersection, union
+    '''
+    iou_part = []
+    iou_whole = []
+
+    for batch in test_dataloader:
+        for H_true_name in batch['H_name']:
+            # shouldn't need a bgr to rgb convert because test dataloader loaded images using skimage.io.imread NOT cv2
+            # confusing bruh
+            # once we finish this run evaluation comparing with conversion to without just to see what happens
+            img = io.imread(os.path.join(img_path, H_true_name.replace('npy', 'jpg')))
+            H_true = np.load(os.path.join(H_path, H_true_name))
+            H_pred = get_homography_matrix(model, img, src_dims=(1280, 720), dst_dims=(1280, 720))
+            # print(H_true_name)
+            #img is 1280x720, H_true maps from 1280x720 to 1280x720
+
+            iou_part.append(calc_iou_part(img, H_true, H_pred))
+            iou_whole.append(calc_iou_whole(H_true, H_pred))
+    return iou_part, iou_whole
+
+
