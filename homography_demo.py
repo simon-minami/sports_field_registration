@@ -92,7 +92,7 @@ def main(args):
 
     while ret_val:
         # predict homography
-        H_video_to_court = get_homography_matrix(model, frame, (width, height))
+        H_video_to_court = get_homography_matrix(model, frame, src_dims=(width, height))
         H_court_to_video = np.linalg.inv(H_video_to_court)
 
         # draw predicted court lines on frame

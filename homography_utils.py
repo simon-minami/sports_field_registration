@@ -5,29 +5,39 @@ import cv2
 import numpy as np
 import torch
 from torchvision import transforms
-from sports_field_registration.utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
+from utils.grid_utils import get_faster_landmarks_positions, conflicts_managements
 from cv2 import warpPerspective
 import matplotlib.pyplot as plt
 import shapely
 from shapely.geometry import Polygon
+import os.path as osp
 
-def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=94, field_width=50, threshold=0.75):
+# IMPORTANT NOTE ON READING IMGS:
+# Model needs images to be in RGB format to work, but cv2 reads imgs default in BGR format
+# Because of this we have preprocessing in place to flip from BGR to RGB
+# If you use different img read function like skimage.io.imread (which reads in RGB default)
+# the color channels will get flipped to BGR which will really mess up the homography predictions
+def get_homography_matrix(model, img, src_dims=(1280, 720), size=(256, 256), dst_dims=(94, 50), threshold=0.75):
     '''
-    Given image of court, predicts homogrpahy matrix mapping from video to 2D court space
+    Given image of court, predicts homography matrix mapping from video to 2D court space
+    Scales H to specified src and dst dimensions
     Args:
         model (vanilla_Unet2_: should be loaded and in eval mode (should be vanilla_Unet2)
         video_size (tuple): input video dimensions (w, h)
-        size (tuple): constant image resize used by homography model (w, h) (don't change)
+        size (tuple): constant image input dimensions expected homography model (w, h) (don't change)
+        src_dims: width, height of src space you want for outputted H
+        dst_dims: width, height of dst space you want for outputted H
     Returns:
          numpy matrix: the video to court homography matrix
     '''
     # using 15x7 uniform grid representation of court
-    markers_x = np.linspace(0, field_length, 15)
-    lines_y = np.linspace(0, field_width, 7)
-    width = video_size[0]
-    height = video_size[1]
+    dst_width, dst_height = dst_dims
+    src_width, src_height = src_dims
+    markers_x = np.linspace(0, dst_width, 15)
+    lines_y = np.linspace(0, dst_height, 7)
 
-    with torch.no_grad():
+
+    with torch.inference_mode():
         resized_img, tensor_img = preprocess(img, size)
         grid_output = model(tensor_img)
         grid_output = tensor_to_image(grid_output, inv_trans=False, batched=True, to_uint8=False)
@@ -42,20 +52,16 @@ def get_homography_matrix(model, img, video_size, size=(256, 256), field_length=
     if len(src_pts) < 4:
         print('homo could not be calculated')
         return None
+    # right now src is in 256x256, dst is in dst_width x dst_height
+    # now we have to scale the src pts to desired dimension
+    src_scale_x = src_width / size[0]
+    src_scale_y = src_height / size[1]
 
+    src_pts = [(x*src_scale_x, y*src_scale_y) for (x, y) in src_pts]
     H_video_to_court, _ = cv2.findHomography(np.array(src_pts), np.array(dst_pts), cv2.RANSAC, ransacReprojThreshold=3)
 
-    # H_video_to_court maps from 256x256 video to court diagram
-    # we want to it to go from video_size[0] x video_size[1] to court diagram
-    # current code works, but its redundant (TODO: should be a way to do this without all the inverting)
-    H_court_to_video = np.linalg.inv(H_video_to_court)
-    scale_factor = np.eye(3)
-    scale_factor[0, 0] = width / size[0]
-    scale_factor[1, 1] = height / size[0]
-    H_court_to_video_scaled = np.matmul(scale_factor, H_court_to_video)
-    # now H_court_to_video maps from court to video width x height
-    # invert to get width x height to court
-    return np.linalg.inv(H_court_to_video_scaled)
+
+    return H_video_to_court
 
 
 def preprocess(img, size):
@@ -146,6 +152,7 @@ def calc_iou_part(img, H_true, H_pred):
     NEED to keep in mind dimensions
     H_true maps from by default H_true maps from 1280x720 to 1280x720
     img is from original data set so its 1280x720
+
     '''
     # assume img is 1280x720, H_true maps from 1280x720 to 1280x720
     true_projection = warpPerspective(img, H_true, (1280, 720))
@@ -159,19 +166,19 @@ def calc_iou_part(img, H_true, H_pred):
 
     # now, calculate the IOU part
     # boolean comparison creates same size array, true if condition true, false otherwise
-    intersection = np.sum((truth_mask==1) & (pred_mask==1))
-    union = np.sum((truth_mask==1) | (pred_mask==1))
-    iou_part = intersection/union
+    intersection = np.sum((truth_mask == 1) & (pred_mask == 1))
+    union = np.sum((truth_mask == 1) | (pred_mask == 1))
+    iou_part = intersection / union
 
-    # optional visualization stuff
     # fig, axs = plt.subplots(1, 2, figsize=(12, 6))
     # axs[0].imshow(true_projection)
     # axs[0].set_title('ground truth projection')
     # axs[1].imshow(pred_projection)
     # axs[1].set_title(f'pred projection, iou: {iou_part}')
 
-
     return iou_part
+
+
 def calc_iou_whole(H_true, H_pred):
     '''
     Given H_true, H_pred calculates the iou whole
@@ -181,12 +188,11 @@ def calc_iou_whole(H_true, H_pred):
     img is from original data set so its 1280x720
 
     '''
-    corners_truth = np.array([(0, 0), (1280, 0), (1280, 720), (0, 720)]).reshape(-1, 1, 2).astype(float)  # need to reshape for transformation
-    corners_in_video = cv2.perspectiveTransform(corners, np.linalg.inv(H_true))
+    corners_truth = np.array([(0, 0), (1280, 0), (1280, 720), (0, 720)]).reshape(-1, 1, 2).astype(
+        float)  # need to reshape for transformation
+    corners_in_video = cv2.perspectiveTransform(corners_truth, np.linalg.inv(H_true))
 
     corners_pred = cv2.perspectiveTransform(corners_in_video, H_pred)
-
-
 
     # now we can calculate the iou whole
     court_truth = Polygon(corners_truth.squeeze())
@@ -199,10 +205,10 @@ def calc_iou_whole(H_true, H_pred):
     # fig, ax = plt.subplots(1, 1, figsize=(8, 4))
     # ax.set_xlim([-200, 1480])
     # ax.set_ylim([-200, 920])
-    #
+
     # corners_truth_closed = np.concatenate([corners_truth.squeeze(), corners_truth[0, :]])
     # print(corners_truth.shape, corners_truth_closed.shape)
-    #
+
     # corners_pred_closed = np.concatenate([corners_pred.squeeze(), corners_pred[0, :]])
     # ax.plot(corners_truth_closed[:, 0], corners_truth_closed[:, 1], color='blue')
     # ax.plot(corners_pred_closed[:, 0], corners_pred_closed[:, 1], color='red')
@@ -210,7 +216,8 @@ def calc_iou_whole(H_true, H_pred):
     # plt.show()
     return iou_whole
 
-def get_iou_part_and_whole(model, test_dataloader, H_path):
+
+def get_iou_part_and_whole(model, test_dataloader, img_path, H_path):
     '''
     gets the iou part and whole on test dataset
     iou_part:
@@ -229,14 +236,15 @@ def get_iou_part_and_whole(model, test_dataloader, H_path):
 
     for batch in test_dataloader:
         for H_true_name in batch['H_name']:
+            # H_true_name is game/frame.npy ex: 20230217_washingtonst_oregon/frame_541.npy
             # shouldn't need a bgr to rgb convert because test dataloader loaded images using skimage.io.imread NOT cv2
             # confusing bruh
             # once we finish this run evaluation comparing with conversion to without just to see what happens
-            img = io.imread(os.path.join(img_path, H_true_name.replace('npy', 'jpg')))
-            H_true = np.load(os.path.join(H_path, H_true_name))
+            img = cv2.imread(osp.join(img_path, H_true_name.replace('npy', 'jpg')))
+            H_true = np.load(osp.join(H_path, H_true_name))
             H_pred = get_homography_matrix(model, img, src_dims=(1280, 720), dst_dims=(1280, 720))
             # print(H_true_name)
-            #img is 1280x720, H_true maps from 1280x720 to 1280x720
+            # img is 1280x720, H_true maps from 1280x720 to 1280x720
 
             iou_part.append(calc_iou_part(img, H_true, H_pred))
             iou_whole.append(calc_iou_whole(H_true, H_pred))
