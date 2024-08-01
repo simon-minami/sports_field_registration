@@ -28,6 +28,7 @@ def main(args):
     torch.cuda.empty_cache()
     # device-agnostic, in practice probably wanna train on gpu
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f'running on device: {device}')
     writer = SummaryWriter()  # default location is ./runs
 
     train_img_path = 'dataset/ncaa_bball/images'
