@@ -38,7 +38,9 @@ def get_homography_matrix(model, img, src_dims=(1280, 720), size=(256, 256), dst
 
 
     with torch.inference_mode():
-        resized_img, tensor_img = preprocess(img, size)
+        device = next(model.parameters()).device  # get device model is on
+        # print(device, type(device))
+        resized_img, tensor_img = preprocess(img, size, device)
         grid_output = model(tensor_img)
         grid_output = tensor_to_image(grid_output, inv_trans=False, batched=True, to_uint8=False)
 
@@ -64,7 +66,7 @@ def get_homography_matrix(model, img, src_dims=(1280, 720), size=(256, 256), dst
     return H_video_to_court
 
 
-def preprocess(img, size):
+def preprocess(img, size, device):
     '''
     apply necessary preprocess to img before inputing into model
     also returns resized version of original
@@ -81,7 +83,7 @@ def preprocess(img, size):
     resized_img = cv2.resize(rgb_frame, size)
     tensor_img = img_transform(resized_img)
     tensor_img = tensor_img.view(3, tensor_img.shape[-2], tensor_img.shape[-1])  #
-    tensor_img = tensor_img.unsqueeze(0).cuda()  # add batch dimension and send to gpu
+    tensor_img = tensor_img.unsqueeze(0).to(device)  # add batch dimension and send to gpu
     return resized_img, tensor_img
 
 
@@ -170,6 +172,7 @@ def calc_iou_part(img, H_true, H_pred):
     union = np.sum((truth_mask == 1) | (pred_mask == 1))
     iou_part = intersection / union
 
+    # optional visualization stuff
     # fig, axs = plt.subplots(1, 2, figsize=(12, 6))
     # axs[0].imshow(true_projection)
     # axs[0].set_title('ground truth projection')
@@ -181,6 +184,8 @@ def calc_iou_part(img, H_true, H_pred):
 
 def calc_iou_whole(H_true, H_pred):
     '''
+    NOTE: will get error if model is very poor and predicts corners that are invalid
+    TODO: could do some error handling for this, but it shouldn't get error as long as model is good enough and input img is normal
     Given H_true, H_pred calculates the iou whole
     unlike calc_iou_part we don't need img because we're not projecting the img, just the corners
     NEED to keep in mind dimensions

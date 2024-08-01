@@ -13,6 +13,7 @@ from cv2 import resize, GaussianBlur, findHomography,\
 from utils.homography_utils import augment_matrix
 import numpy as np
 from random import random
+import pathlib
 
 
 class Dataloader(Dataset) :
@@ -335,13 +336,18 @@ class BballDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.img_paths[idx]
-        img = io.imread(img_path)
-
+        img = cv2.imread(img_path)
+        # print(img_path)
         # transforms 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg' into '20230220_WVU_OklahomaSt/frame_1.jpg'
         # load img and corresponding grid
-        img_name = os.path.join(*img_path.split('/')[-2:])
+        # Get the last two components
+        img_path = pathlib.Path(img_path)
+        img_name = str(pathlib.Path(img_path.parent.name) / img_path.name)
         grid_name = img_name.replace("jpg", "npy")
         grid_path = os.path.join(self.grids_path, grid_name)
+        # print(grid_name)
+        # print(self.grids_path)
+
 
         # "out" seems like a kinda confusing naming convention, but imma just keep it cuz
         # the original author used it everywhere
@@ -586,7 +592,8 @@ def get_train_test_dataloaders_bball(img_path, grids_path, size, train_file, bat
     if train_test_ratio != 1 :
         train_size = int(train_test_ratio * len(dataset))
         test_size = len(dataset) - train_size
-        train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+        generator1 = torch.Generator().manual_seed(42)  # random seed for train test split for reproducibility
+        train_dataset, test_dataset = random_split(dataset, [train_size, test_size], generator=generator1)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
         test_dataset.data_augmentation = False
         test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle)
