@@ -21,6 +21,7 @@ import numpy as np
 def make_parser():
     parser = argparse.ArgumentParser('Jacquelin et al Homography Model Training')
     parser.add_argument("--epochs", default=100, type=int, help="training epochs")
+    parser.add_argument("--batch_size", default=16, type=int, help="training batch size")
     parser.add_argument("--pretrained_model_path", default='models/soccer model.pth', type=str,help="Path to the pre-trained model to start training with")
     return parser
 def main(args):
@@ -42,7 +43,7 @@ def main(args):
     model_prefix = ''
     best_model_name = 'best_bball.pth'
     final_model_name = 'final_bball.pth'
-    batch_size = 8
+    batch_size = args.batch_size
     models_folder = 'models/'
     # epochs_already_trained = 0
 
