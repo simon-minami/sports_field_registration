@@ -336,7 +336,7 @@ class BballDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.img_paths[idx]
-        img = cv2.imread(img_path)
+        img = io.imread(img_path)  # don't use cv2.imread, this will read in bgr, we want rgb
         # print(img_path)
         # transforms 'dataset/ncaa_bball/images/20230220_WVU_OklahomaSt/frame_1.jpg' into '20230220_WVU_OklahomaSt/frame_1.jpg'
         # load img and corresponding grid
