@@ -194,21 +194,23 @@ def main(args):
     # ask nick about where to save the train/test loss, and the iou stuff
     H_path = 'dataset/ncaa_bball/annotations'
     img_path = 'dataset/ncaa_bball/images'
+
     print(f'calculating iou metrics on best model')
     model = vanilla_Unet2(final_depth=22).to(device)  # reinitialize model
     model.load_state_dict(torch.load(best_model_path, map_location=device))
+    # model.load_state_dict(torch.load(pretrained_model_path, map_location=device))
 
     part, whole = get_iou_part_and_whole(model, test_dataloader, img_path, H_path)
     ave_iou_part, ave_iou_whole = np.average(part), np.average(whole)
     print(f'iou part: {ave_iou_part} | iou whole: {ave_iou_whole}')
 
-    print(f'calculating iou metrics on final model')
-    model = vanilla_Unet2(final_depth=22).to(device)  # reinitialize model
-    model.load_state_dict(torch.load(final_model_path, map_location=device))
-
-    part, whole = get_iou_part_and_whole(model, test_dataloader, img_path, H_path)
-    ave_iou_part, ave_iou_whole = np.average(part), np.average(whole)
-    print(f'iou part: {ave_iou_part} | iou whole: {ave_iou_whole}')
+    # print(f'calculating iou metrics on final model')
+    # model = vanilla_Unet2(final_depth=22).to(device)  # reinitialize model
+    # model.load_state_dict(torch.load(final_model_path, map_location=device))
+    #
+    # part, whole = get_iou_part_and_whole(model, test_dataloader, img_path, H_path)
+    # ave_iou_part, ave_iou_whole = np.average(part), np.average(whole)
+    # print(f'iou part: {ave_iou_part} | iou whole: {ave_iou_whole}')
 if __name__ == '__main__':
     args = make_parser().parse_args()
     main(args)

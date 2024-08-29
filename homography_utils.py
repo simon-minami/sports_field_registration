@@ -191,6 +191,7 @@ def calc_iou_whole(H_true, H_pred):
     NEED to keep in mind dimensions
     H_true maps from by default H_true maps from 1280x720 to 1280x720
     img is from original data set so its 1280x720
+    TODO: we need to figure out if the iou whole error is from a weird model or weird img in the test dataset
 
     '''
     corners_truth = np.array([(0, 0), (1280, 0), (1280, 720), (0, 720)]).reshape(-1, 1, 2).astype(
@@ -202,6 +203,7 @@ def calc_iou_whole(H_true, H_pred):
     # now we can calculate the iou whole
     court_truth = Polygon(corners_truth.squeeze())
     court_pred = Polygon(corners_pred.squeeze())
+
     intersection = shapely.intersection(court_truth, court_pred).area
     union = shapely.union(court_truth, court_pred).area
     iou_whole = intersection / union
@@ -250,9 +252,20 @@ def get_iou_part_and_whole(model, test_dataloader, img_path, H_path):
             H_pred = get_homography_matrix(model, img, src_dims=(1280, 720), dst_dims=(1280, 720))
             # print(H_true_name)
             # img is 1280x720, H_true maps from 1280x720 to 1280x720
-
             iou_part.append(calc_iou_part(img, H_true, H_pred))
-            iou_whole.append(calc_iou_whole(H_true, H_pred))
+
+            # sometimes model makes bad prediction and the iou whole can't be calculated
+            # this should not be a problem with good models (i think)
+            # TODO: expand dataset and train new model and see if you get this error
+            try:
+                iou_whole.append(calc_iou_whole(H_true, H_pred))
+            except shapely.errors.GEOSException as e:
+                print(e)
+                cv2.imwrite('images/error_img.png', img)
+                np.save('images/h_true', H_true)
+                np.save('images/h_pred', H_pred)
+                print(f'saved img that caused error for analysis')
+                break
     return iou_part, iou_whole
 
 
