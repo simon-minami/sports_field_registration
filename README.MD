@@ -1,10 +1,21 @@
+# ⚠️ Project Archived ⚠️
+
+This repository is no longer maintained and has been migrated to a new location.
+
+Please visit the updated repository here: [cbb-tracking](https://github.com/NicholasCanova/cbb-tracking)
+
+---
+
+For the latest updates and contributions, kindly head over to the new repo.
+
 # Sports Field Registration
 
 The `sports_field_registration` folder contains all the code used to estimate the court homography.
 
 ## Description
 
-A short description of how the model works can be seen in `README.md`. This repo was forked from [njacquelin/sports_field_registration](https://github.com/njacquelin/sports_field_registration) and modified for basketball.
+
+A short description of how the model works can be seen in `original_README.md`. This repo was forked from [njacquelin/sports_field_registration](https://github.com/njacquelin/sports_field_registration) and modified for basketball.
 
 Below is a description of how to use the code to create a custom training dataset, train the model, and perform inference on unseen court images.
 
